@@ -49,6 +49,7 @@ import {
   Edit3,
   Image as ImageIcon,
   RefreshCw,
+  Key,
 } from 'lucide-react';
 import {
   PRODUCTS,
@@ -246,21 +247,50 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanPwd = loginPassword.trim().toLowerCase();
-    // Accept standard admin passwords (admin123, admin, ling2025, or any non-empty input)
-    if (cleanPwd === 'admin123' || cleanPwd === 'admin' || cleanPwd === 'ling2025' || cleanPwd === 'ling123' || cleanPwd.length > 0) {
+    const cleanPwd = loginPassword.trim();
+    const storedPwd = localStorage.getItem('ling_admin_password') || 'admin123';
+    if (cleanPwd === storedPwd) {
       setIsAuthenticated(true);
       localStorage.setItem('ling_admin_authenticated', 'true');
       setLoginError('');
     } else {
-      setLoginError('Senha incorreta. A senha padrão do painel é: admin123 ou admin');
+      setLoginError('Senha incorreta. Acesso restrito.');
     }
   };
 
   // Active section
   const [activeTab, setActiveTab] = useState<
-    'orders' | 'catalog' | 'suppliers' | 'gateway' | 'metrics' | 'viral-studio'
+    'orders' | 'catalog' | 'suppliers' | 'gateway' | 'settings'
   >('orders');
+
+  // Password change state
+  const [currentPwdInput, setCurrentPwdInput] = useState('');
+  const [newPwdInput, setNewPwdInput] = useState('');
+  const [confirmPwdInput, setConfirmPwdInput] = useState('');
+  const [pwdFeedback, setPwdFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+
+  const handleChangePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    const currentActual = localStorage.getItem('ling_admin_password') || 'admin123';
+    if (currentPwdInput.trim() !== currentActual) {
+      setPwdFeedback({ type: 'error', msg: 'Senha atual incorreta.' });
+      return;
+    }
+    if (newPwdInput.trim().length < 4) {
+      setPwdFeedback({ type: 'error', msg: 'A nova senha deve ter no mínimo 4 caracteres.' });
+      return;
+    }
+    if (newPwdInput.trim() !== confirmPwdInput.trim()) {
+      setPwdFeedback({ type: 'error', msg: 'A nova senha e a confirmação não conferem.' });
+      return;
+    }
+    localStorage.setItem('ling_admin_password', newPwdInput.trim());
+    setCurrentPwdInput('');
+    setNewPwdInput('');
+    setConfirmPwdInput('');
+    setPwdFeedback({ type: 'success', msg: 'Senha de administrador alterada com sucesso!' });
+    setTimeout(() => setPwdFeedback(null), 6000);
+  };
 
   // Catalog & CJ Margins Tab State
   const [catalogSearch, setCatalogSearch] = useState('');
@@ -1110,19 +1140,16 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="mb-1.5">
                 <label className="block text-xs font-bold text-blue-200 uppercase tracking-wider">
                   Senha de Acesso do Lojista
                 </label>
-                <span className="text-[10px] text-emerald-300 font-bold bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30">
-                  🔑 Senha: admin123
-                </span>
               </div>
               <input
                 type="password"
                 required
                 autoFocus
-                placeholder="Digite admin123 para entrar..."
+                placeholder="Digite sua senha de administrador..."
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 className="w-full bg-[#001830] border border-blue-800 rounded-xl px-4 py-3 text-sm text-white placeholder-blue-500 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 font-mono"
@@ -1219,14 +1246,14 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
               onClick={() => setActiveTab('catalog')}
               className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                 activeTab === 'catalog'
-                  ? 'bg-emerald-600 text-white shadow-md ring-2 ring-emerald-400/40'
-                  : 'text-emerald-300 hover:bg-emerald-500/20 bg-emerald-500/10 border border-emerald-400/30'
+                  ? 'bg-[#2563EB] text-white shadow-md'
+                  : 'text-blue-200 hover:bg-white/10 bg-white/5'
               }`}
             >
-              <Package size={14} className="text-emerald-300" />
-              <span>Catálogo & Lucros CJ</span>
-              <span className="bg-emerald-400 text-stone-950 text-[10px] font-black px-1.5 py-0.2 rounded-full">
-                25
+              <Package size={14} />
+              <span>Catálogo</span>
+              <span className="bg-white/20 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                {activeProducts.length}
               </span>
             </button>
 
@@ -1234,48 +1261,36 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
               onClick={() => setActiveTab('suppliers')}
               className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                 activeTab === 'suppliers'
-                  ? 'bg-[#E31837] text-white shadow-md'
+                  ? 'bg-[#2563EB] text-white shadow-md'
                   : 'text-blue-200 hover:bg-white/10 bg-white/5'
               }`}
             >
               <Building2 size={14} />
-              <span>Fornecedores</span>
+              <span>Fornecedores CJ</span>
             </button>
 
             <button
               onClick={() => setActiveTab('gateway')}
               className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                 activeTab === 'gateway'
-                  ? 'bg-[#E31837] text-white shadow-md'
+                  ? 'bg-[#2563EB] text-white shadow-md'
                   : 'text-blue-200 hover:bg-white/10 bg-white/5'
               }`}
             >
               <CreditCard size={14} />
-              <span>Stripe</span>
+              <span>Stripe (US$)</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('metrics')}
+              onClick={() => setActiveTab('settings')}
               className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-                activeTab === 'metrics'
-                  ? 'bg-[#E31837] text-white shadow-md'
+                activeTab === 'settings'
+                  ? 'bg-[#2563EB] text-white shadow-md'
                   : 'text-blue-200 hover:bg-white/10 bg-white/5'
               }`}
             >
-              <TrendingUp size={14} />
-              <span>Métricas</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('viral-studio')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-                activeTab === 'viral-studio'
-                  ? 'bg-[#E31837] text-white shadow-md'
-                  : 'text-blue-200 hover:bg-white/10 bg-white/5'
-              }`}
-            >
-              <Sparkles size={14} className="text-amber-300" />
-              <span>Viral Studio</span>
+              <Key size={14} />
+              <span>Configurações & Senha</span>
             </button>
 
             <button
@@ -1526,126 +1541,35 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
         {/* TAB 2: CATÁLOGO & LUCROS CJ DROPSHIPPING (NOVA CENTRAL ESTRATÉGICA) */}
         {activeTab === 'catalog' && (
           <div className="space-y-6">
-            {/* Header intro & CJ Verified Connection Badge */}
-            <div className="bg-gradient-to-r from-[#002244] via-[#003875] to-[#0A58CA] text-white p-6 sm:p-8 rounded-3xl shadow-xl relative overflow-hidden">
-              <div className="relative z-10">
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <span className="inline-flex items-center gap-1.5 bg-emerald-400 text-stone-950 font-black text-[11px] px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                    <span className="w-2 h-2 rounded-full bg-emerald-900 animate-ping" />
-                    ✓ CJ CONECTADA (Status: 200 OK · ID: {cjUserId || 'CJ5954420'})
-                  </span>
-                  <span className="bg-white/10 text-blue-100 text-xs font-bold px-3 py-1 rounded-full border border-white/15">
-                    Perfil: {cjAccountName || 'Ling Petshop'}
-                  </span>
-                  <span className="bg-amber-400/90 text-stone-950 text-xs font-black px-2.5 py-1 rounded-full">
-                    {activeProducts.length} {activeProducts.length === 1 ? 'Produto Cadastrado' : 'Produtos Cadastrados'}
+            {/* Clean, Professional Catalog Header */}
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-gray-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2.5 mb-1.5">
+                  <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+                    Catálogo de Produtos
+                  </h2>
+                  <span className="bg-blue-50 text-blue-700 font-bold text-xs px-3 py-1 rounded-full border border-blue-200">
+                    {activeProducts.length} {activeProducts.length === 1 ? 'produto ativo' : 'produtos ativos'}
                   </span>
                 </div>
-
-                <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white">
-                  Catálogo Oficial CJ & Estratégia de Lucro por Quantidade
-                </h2>
-
-                <p className="text-xs sm:text-sm text-blue-100 mt-2 max-w-3xl leading-relaxed">
-                  Aqui você visualiza os custos reais de atacado da CJ Dropshipping para cada produto, o frete internacional com rastreio USPS e a precificação de alta conversão. Adicione seus produtos reais ou limpe o catálogo para começar do zero!
+                <p className="text-xs sm:text-sm text-gray-500">
+                  Gerencie os produtos cadastrados para o mercado dos EUA com preços em dólares (US$) e despacho via fornecedor.
                 </p>
               </div>
-            </div>
 
-            {/* Direct Manual Product Banner & Practical Guide */}
-            <div className="bg-gradient-to-r from-[#001830] to-[#002244] text-white p-6 rounded-3xl border border-emerald-500/40 shadow-lg space-y-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 bg-emerald-400 text-stone-950 font-black text-[10px] px-3 py-1 rounded-full uppercase tracking-wider mb-2">
-                    <Sparkles size={13} />
-                    <span>CENTRAL DE PRODUTOS & FORNECEDORES</span>
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-black text-white">
-                    Cadastrar Seus Próprios Produtos & Fornecedores
-                  </h3>
-                  <p className="text-xs text-blue-100 mt-1 max-w-2xl leading-relaxed">
-                    Você pode zerar os 25 produtos de teste com 1 clique e cadastrar seus novos produtos da CJ Dropshipping ou de qualquer fornecedor com margem de 50% a 65% de lucro líquido.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddProductOpen(true)}
-                    className="bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 cursor-pointer transition-all hover:scale-102 active:scale-98"
-                  >
-                    <Plus size={16} />
-                    <span>+ Adicionar Novo Produto</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleClearAllProducts}
-                    className="bg-rose-500/20 hover:bg-rose-500/40 text-rose-200 border border-rose-500/40 font-bold text-xs px-4 py-3 rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
-                    title="Apaga os 25 produtos de exemplo para começar o catálogo 100% limpo"
-                  >
-                    <Trash2 size={14} className="text-rose-400" />
-                    <span>Zerar Produtos de Teste</span>
-                  </button>
-
-                  {activeProducts.length === 0 && (
-                    <button
-                      type="button"
-                      onClick={handleResetCatalog}
-                      className="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3.5 py-3 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 border border-white/15"
-                      title="Restaura os 25 produtos de exemplo caso queira usá-los como modelo"
-                    >
-                      <RefreshCw size={14} />
-                      <span>Restaurar 25 Exemplos</span>
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => setShowManualGuide(!showManualGuide)}
-                    className="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3.5 py-3 rounded-xl transition-all cursor-pointer flex items-center gap-1 border border-white/15"
-                  >
-                    <span>{showManualGuide ? 'Ocultar Guia' : '📘 Ver Como Cadastrar'}</span>
-                  </button>
-                </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsAddProductOpen(true)}
+                  className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-black text-xs px-5 py-3.5 rounded-2xl shadow-md flex items-center gap-2 cursor-pointer transition-all hover:scale-102 active:scale-98"
+                >
+                  <Plus size={16} />
+                  <span>+ Adicionar Produto</span>
+                </button>
               </div>
-
-              {showManualGuide && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5 pt-4 border-t border-blue-800/80 text-xs animate-fadeIn">
-                  <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-1.5">
-                    <span className="w-6 h-6 rounded-full bg-emerald-400 text-stone-950 font-black text-xs flex items-center justify-center">1</span>
-                    <h4 className="font-black text-sm text-white">Abra a CJ Dropshipping</h4>
-                    <p className="text-[11px] text-blue-200 leading-relaxed">
-                      Pesquise qualquer item de pet (ex: "dog bed", "cat toy", "pet harness", "water fountain").
-                    </p>
-                  </div>
-
-                  <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-1.5">
-                    <span className="w-6 h-6 rounded-full bg-emerald-400 text-stone-950 font-black text-xs flex items-center justify-center">2</span>
-                    <h4 className="font-black text-sm text-white">Copie Foto, Nome e Preço</h4>
-                    <p className="text-[11px] text-blue-200 leading-relaxed">
-                      Copie o link da foto (clique com botão direito -&gt; "Copiar endereço da imagem"), o nome do produto e quanto a CJ cobra.
-                    </p>
-                  </div>
-
-                  <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-1.5">
-                    <span className="w-6 h-6 rounded-full bg-emerald-400 text-stone-950 font-black text-xs flex items-center justify-center">3</span>
-                    <h4 className="font-black text-sm text-white">Cole no Formulário</h4>
-                    <p className="text-[11px] text-blue-200 leading-relaxed">
-                      Clique no botão verde acima. Cole o link da foto (veja o teste ao vivo na tela!), defina o preço de venda e veja seu lucro.
-                    </p>
-                  </div>
-
-                  <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-1.5">
-                    <span className="w-6 h-6 rounded-full bg-emerald-400 text-stone-950 font-black text-xs flex items-center justify-center">4</span>
-                    <h4 className="font-black text-sm text-white">Publicar na Loja</h4>
-                    <p className="text-[11px] text-blue-200 leading-relaxed">
-                      Clique em "Publicar na Loja". O produto entra imediatamente na vitrine, na busca e no checkout pronto para vender!
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
+
+
 
             {/* 4 Metric Cards for Catalog & CJ Margins */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -1837,15 +1761,15 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
               {/* Category Pills */}
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
                 {[
-                  { label: 'Todos os Produtos', value: 'all', count: PRODUCTS.length },
-                  { label: '🐶 Cães', value: 'Dogs', count: PRODUCTS.filter((p) => p.department === 'Dogs' || p.petType === 'Dog').length },
-                  { label: '🐱 Gatos', value: 'Cats', count: PRODUCTS.filter((p) => p.department === 'Cats' || p.petType === 'Cat').length },
-                  { label: '🛏️ Caminhas', value: 'Beds', count: PRODUCTS.filter((p) => p.category === 'Beds').length },
-                  { label: '🦮 Passeio', value: 'Walk & Travel', count: PRODUCTS.filter((p) => p.category === 'Walk & Travel').length },
-                  { label: '🥣 Alimentação', value: 'Feeding', count: PRODUCTS.filter((p) => p.category === 'Feeding').length },
-                  { label: '🚿 Higiene & Tosa', value: 'Grooming', count: PRODUCTS.filter((p) => p.category === 'Grooming').length },
-                  { label: '🎾 Brinquedos', value: 'Toys', count: PRODUCTS.filter((p) => p.category === 'Toys').length },
-                  { label: '🌿 Bem-Estar', value: 'Wellness', count: PRODUCTS.filter((p) => p.category === 'Wellness').length },
+                  { label: 'Todos os Produtos', value: 'all', count: activeProducts.length },
+                  { label: '🐶 Cães', value: 'Dogs', count: activeProducts.filter((p) => p.department === 'Dogs' || p.petType === 'Dog').length },
+                  { label: '🐱 Gatos', value: 'Cats', count: activeProducts.filter((p) => p.department === 'Cats' || p.petType === 'Cat').length },
+                  { label: '🛏️ Caminhas', value: 'Beds', count: activeProducts.filter((p) => p.category === 'Beds').length },
+                  { label: '🦮 Passeio', value: 'Walk & Travel', count: activeProducts.filter((p) => p.category === 'Walk & Travel').length },
+                  { label: '🥣 Alimentação', value: 'Feeding', count: activeProducts.filter((p) => p.category === 'Feeding').length },
+                  { label: '🚿 Higiene & Tosa', value: 'Grooming', count: activeProducts.filter((p) => p.category === 'Grooming').length },
+                  { label: '🎾 Brinquedos', value: 'Toys', count: activeProducts.filter((p) => p.category === 'Toys').length },
+                  { label: '🌿 Bem-Estar', value: 'Wellness', count: activeProducts.filter((p) => p.category === 'Wellness').length },
                 ].map((cat) => (
                   <button
                     key={cat.value}
@@ -1877,28 +1801,18 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                 </h3>
                 <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed">
                   {activeProducts.length === 0
-                    ? 'Os 25 produtos de teste foram removidos. Agora você pode adicionar seus próprios produtos da CJ Dropshipping ou fornecedores clicando no botão abaixo.'
-                    : 'Tente limpar a busca ou selecionar outra categoria acima.'}
+                    ? 'Nenhum produto cadastrado ainda. Clique no botão abaixo para adicionar seu primeiro produto com fotos, fornecedor e preço de venda.'
+                    : 'Nenhum produto encontrado nesta busca. Tente selecionar outra categoria acima.'}
                 </p>
-                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <div className="flex items-center justify-center pt-2">
                   <button
                     type="button"
                     onClick={() => setIsAddProductOpen(true)}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-5 py-3 rounded-xl shadow-md cursor-pointer transition-all flex items-center gap-2"
+                    className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-black text-xs px-6 py-3.5 rounded-2xl shadow-md cursor-pointer transition-all flex items-center gap-2 hover:scale-102 active:scale-98"
                   >
                     <Plus size={16} />
                     <span>+ Adicionar Meu Primeiro Produto</span>
                   </button>
-                  {activeProducts.length === 0 && (
-                    <button
-                      type="button"
-                      onClick={handleResetCatalog}
-                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs px-4 py-3 rounded-xl cursor-pointer transition-all flex items-center gap-1.5"
-                    >
-                      <RefreshCw size={14} />
-                      <span>Restaurar 25 Exemplos</span>
-                    </button>
-                  )}
                 </div>
               </div>
             ) : (
@@ -2286,17 +2200,33 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                         <label className="text-[10px] font-bold text-gray-500 uppercase">
                           CJ Dropshipping Open API Key
                         </label>
-                        <span className="text-[9px] text-blue-600 font-semibold">
-                          myCJ &gt; API Key
-                        </span>
+                        <a
+                          href="https://cjdropshipping.com/myCJ.html#/api"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-blue-600 hover:text-blue-800 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          Pegar API Key no CJ Dropshipping ↗
+                        </a>
                       </div>
                       <input
                         type="text"
                         value={cjApiKey}
                         onChange={(e) => setCjApiKey(e.target.value)}
-                        placeholder="Cole sua API Key da CJ aqui (opcional ou auto)"
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono text-gray-800"
+                        placeholder="Cole sua API Key da CJ aqui (gerada em myCJ.html#/api)"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono text-gray-800 focus:bg-white focus:border-blue-500 transition-colors"
                       />
+                      <p className="text-[10px] text-gray-500 mt-1">
+                        Link direto:{' '}
+                        <a
+                          href="https://cjdropshipping.com/myCJ.html#/api"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 font-mono underline"
+                        >
+                          https://cjdropshipping.com/myCJ.html#/api
+                        </a>
+                      </p>
                     </div>
 
                     <div>
@@ -3186,6 +3116,129 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                 <p className="text-xs text-blue-100 mt-0.5">
                   Sarah Miller acabou de comprar "The Cloud9™ Orthopedic Calming Pet Bed" em Miami, FL.
                 </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: CONFIGURAÇÕES & SEGURANÇA */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-200">
+            {/* Header */}
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-gray-200 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center">
+                  <ShieldCheck size={22} />
+                </div>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+                    Configurações & Segurança do Painel
+                  </h2>
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    Altere sua senha de acesso e verifique as definições gerais da loja Ling Petshop.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Change Password Card */}
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-gray-200 shadow-xs space-y-5">
+              <div className="flex items-center gap-2 border-b border-gray-100 pb-4">
+                <Key size={18} className="text-[#2563EB]" />
+                <h3 className="text-base font-bold text-gray-900">Alterar Senha de Administrador</h3>
+              </div>
+
+              {pwdFeedback && (
+                <div
+                  className={`p-4 rounded-2xl text-xs font-bold flex items-center gap-2 ${
+                    pwdFeedback.type === 'success'
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      : 'bg-rose-50 text-rose-800 border border-rose-200'
+                  }`}
+                >
+                  <AlertCircle size={16} className="shrink-0" />
+                  <span>{pwdFeedback.msg}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Senha Atual
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={currentPwdInput}
+                    onChange={(e) => setCurrentPwdInput(e.target.value)}
+                    placeholder="Digite a senha atual..."
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-blue-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Nova Senha
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={newPwdInput}
+                    onChange={(e) => setNewPwdInput(e.target.value)}
+                    placeholder="Digite a nova senha (mínimo 4 caracteres)..."
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-blue-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Confirmar Nova Senha
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={confirmPwdInput}
+                    onChange={(e) => setConfirmPwdInput(e.target.value)}
+                    placeholder="Confirme a nova senha..."
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-blue-500 font-mono"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs px-6 py-3 rounded-xl shadow-md transition-all cursor-pointer"
+                >
+                  Atualizar Senha
+                </button>
+              </form>
+            </div>
+
+            {/* General Info Card */}
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-gray-200 shadow-xs space-y-4">
+              <h3 className="text-base font-bold text-gray-900">Definições da Loja</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-gray-400">Moeda de Cobrança</span>
+                  <p className="font-bold text-gray-800">Dólar Americano (USD - $)</p>
+                  <p className="text-[11px] text-gray-500">Clientes pagam em dólares diretamente na sua conta Stripe.</p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-gray-400">Mercado & Despacho</span>
+                  <p className="font-bold text-gray-800">Estados Unidos (USPS Ground Advantage)</p>
+                  <p className="text-[11px] text-gray-500">Envio direto para todos os 50 estados americanos.</p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                <span className="text-xs text-gray-500">Deseja encerrar sua sessão neste navegador?</span>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="text-rose-600 hover:text-rose-700 font-bold text-xs px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 transition-colors cursor-pointer"
+                >
+                  Sair do Painel Admin
+                </button>
               </div>
             </div>
           </div>

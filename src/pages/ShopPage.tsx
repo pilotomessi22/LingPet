@@ -214,21 +214,15 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                 <div className="w-16 h-16 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mx-auto mb-4">
                   <ShoppingBag size={28} />
                 </div>
-                <h3 className="text-xl font-bold text-[#0F2942] font-serif">Catálogo Pronto para Novos Produtos</h3>
+                <h3 className="text-xl font-bold text-[#0F2942] font-serif">New Seasonal Arrivals Coming Soon</h3>
                 <p className="text-xs text-[#64748B] mt-2 max-w-md mx-auto leading-relaxed">
-                  Os produtos de exemplo foram limpos. Abra o Painel Admin para cadastrar seus novos produtos da CJ Dropshipping ou fornecedores parceiros.
+                  We are currently restocking our US fulfillment centers with new veterinarian-vetted pet essentials. Check back shortly for our new catalog releases!
                 </p>
-                <a
-                  href="#admin"
-                  className="mt-6 inline-flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold px-6 py-3 rounded-full cursor-pointer shadow-md transition-all"
-                >
-                  <span>+ Adicionar Produtos no Painel Admin</span>
-                </a>
               </>
             ) : (
               <>
-                <p className="text-lg font-bold text-[#0F2942] font-serif">Nenhum produto encontrado</p>
-                <p className="text-xs text-[#64748B] mt-1.5">Tente limpar os filtros ou selecionar outra categoria.</p>
+                <p className="text-lg font-bold text-[#0F2942] font-serif">No products found</p>
+                <p className="text-xs text-[#64748B] mt-1.5">Try clearing your filters or selecting a different pet category.</p>
                 <button
                   onClick={() => {
                     setActiveCategory('all');
@@ -237,7 +231,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                   }}
                   className="mt-5 bg-[#0F2942] text-white text-xs font-bold px-6 py-2.5 rounded-full cursor-pointer hover:bg-[#1E3A8A] transition-all"
                 >
-                  Limpar Filtros
+                  Clear Filters
                 </button>
               </>
             )}
