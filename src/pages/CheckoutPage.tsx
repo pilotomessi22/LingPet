@@ -50,6 +50,25 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderId, setOrderId] = useState('');
 
+  // Live Stripe Configuration & Verification Check
+  const [stripeConfig] = useState(() => {
+    const pk = localStorage.getItem('ling_stripe_pk') || '';
+    const sk = localStorage.getItem('ling_stripe_sk') || '';
+    const verified = localStorage.getItem('ling_stripe_verified') === 'true';
+    let details: { isLive?: boolean; currency?: string } | null = null;
+    try {
+      const raw = localStorage.getItem('ling_stripe_details');
+      if (raw) details = JSON.parse(raw);
+    } catch {}
+    const isConfigured = Boolean(pk.trim() && sk.trim());
+    const isLive = Boolean(details?.isLive || pk.startsWith('pk_live_') || sk.startsWith('sk_live_'));
+    return {
+      isConfigured,
+      isVerified: verified,
+      isLive,
+    };
+  });
+
   const calc = calculateOrderTotals(items, appliedPromo);
   const { subtotal, shipping: baseShipping, total: calcTotal } = calc;
   const discount = calc.bundleDiscount + calc.repeatDeliverySavings + calc.promoDiscount;
@@ -286,6 +305,57 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        {/* Stripe Gateway Diagnostic Status Bar */}
+        <div className={`mb-6 p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs ${
+          stripeConfig.isConfigured && stripeConfig.isVerified
+            ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-xs'
+            : 'bg-amber-50/90 border-amber-300 text-amber-900 shadow-xs'
+        }`}>
+          <div className="flex items-center gap-2.5">
+            <span className={`w-3 h-3 rounded-full shrink-0 ${
+              stripeConfig.isConfigured && stripeConfig.isVerified 
+                ? 'bg-emerald-500 animate-pulse' 
+                : 'bg-amber-500'
+            }`} />
+            <div>
+              <p className="font-black text-xs flex items-center gap-1.5">
+                {stripeConfig.isConfigured && stripeConfig.isVerified ? (
+                  <>
+                    <span>✓ Gateway Stripe Oficial Ativo em Dólar (USD)</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200/80 text-emerald-800">
+                      {stripeConfig.isLive ? 'Modo Produção / LIVE' : 'Modo Teste / Sandbox'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span>🟡 Checkout em Modo Demonstração (Simulação)</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900">
+                      Sem Chave Stripe Conectada
+                    </span>
+                  </>
+                )}
+              </p>
+              <p className="text-[11px] opacity-85 mt-0.5 leading-relaxed">
+                {stripeConfig.isConfigured && stripeConfig.isVerified
+                  ? 'Os pedidos e pagamentos no cartão / Apple Pay são processados com segurança pela sua conta oficial da Stripe.'
+                  : 'Nenhuma chave da Stripe conectada no Painel Admin. As compras simulam o fluxo para você testar a loja sem cobrar cartões reais. Para cobrar clientes de verdade, insira suas chaves no Painel Admin.'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              window.location.hash = '#admin';
+            }}
+            className={`px-3.5 py-2 rounded-xl font-bold text-[11px] shrink-0 border cursor-pointer transition-colors ${
+              stripeConfig.isConfigured && stripeConfig.isVerified
+                ? 'bg-white border-emerald-300 text-emerald-800 hover:bg-emerald-100'
+                : 'bg-amber-600 border-amber-700 text-white hover:bg-amber-700 shadow-xs'
+            }`}
+          >
+            {stripeConfig.isConfigured && stripeConfig.isVerified ? '⚙️ Ver Chaves Stripe' : '🔑 Conectar Stripe Oficial'}
+          </button>
+        </div>
 
         <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* Left 7 Columns: Form */}

@@ -481,17 +481,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
   const [cjSaveSuccess, setCjSaveSuccess] = useState(false);
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
   const [rechargeSuccess, setRechargeSuccess] = useState(false);
-  // Stripe API Keys & Test Flow State
+  // Stripe API Keys & Live Verification State
   const [stripePk, setStripePk] = useState(() => localStorage.getItem('ling_stripe_pk') || '');
   const [stripeSk, setStripeSk] = useState(() => localStorage.getItem('ling_stripe_sk') || '');
   const [stripeSaveMsg, setStripeSaveMsg] = useState(false);
   const [isTestingStripeFlow, setIsTestingStripeFlow] = useState(false);
-  const [stripeTestResult, setStripeTestResult] = useState<{
-    status: 'idle' | 'success';
-    orderId: string;
-    amount: number;
-    timestamp: string;
-  } | null>(null);
+  const [stripeVerifyStatus, setStripeVerifyStatus] = useState<'idle' | 'testing' | 'success' | 'error'>(() => {
+    return localStorage.getItem('ling_stripe_verified') === 'true' ? 'success' : 'idle';
+  });
+  const [stripeVerifyDetails, setStripeVerifyDetails] = useState<{
+    isLive?: boolean;
+    balanceUsd?: string;
+    currency?: string;
+    errorMsg?: string;
+    verifiedAt?: string;
+  } | null>(() => {
+    try {
+      const saved = localStorage.getItem('ling_stripe_details');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const playChimeSound = () => {
     try {
@@ -512,61 +523,59 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     }
   };
 
-  const handleRunDummyStripeTestTransaction = () => {
-    setIsTestingStripeFlow(true);
-    setStripeTestResult(null);
-
-    setTimeout(() => {
-      const testOrderId = `LP-US-${Math.floor(100000 + Math.random() * 900000)}`;
-      const testOrder: AdminOrder = {
-        id: `ord-test-${Date.now()}`,
-        orderNumber: testOrderId,
-        date: 'Hoje (Teste de Transação)',
-        customerName: 'Jennifer Hayes (US Test Customer)',
-        customerEmail: 'jennifer.hayes.test@gmail.com',
-        customerPhone: '+1 (512) 555-0182',
-        shippingAddress: {
-          street: '401 Congress Ave, Suite 1200',
-          city: 'Austin',
-          state: 'TX',
-          zip: '78701',
-          country: 'United States',
-        },
-        items: [
-          {
-            sku: 'LP-BED-C9-M',
-            name: 'The Cloud9™ Orthopedic Calming Pet Bed',
-            size: 'Medium (30")',
-            color: 'Sage Green',
-            quantity: 1,
-            unitPrice: 44.95,
-            supplierCost: 15.5,
-            supplier: 'CJ Dropshipping',
-            supplierSku: 'CJ-PET-BED901',
-            supplierUrl: 'https://cjdropshipping.com',
-          },
-        ],
-        totalUsd: 44.95,
-        supplierCostUsd: 15.5,
-        profitUsd: 29.45,
-        paymentGateway: 'Stripe (Credit Card / Apple Pay)',
-        paymentStatus: 'Paid',
-        fulfillmentStatus: 'Aguardando Despacho',
-      };
-
-      const updatedOrders = [testOrder, ...orders];
-      setOrders(updatedOrders);
-      localStorage.setItem('ling_admin_orders', JSON.stringify(updatedOrders));
-
-      playChimeSound();
-      setIsTestingStripeFlow(false);
-      setStripeTestResult({
-        status: 'success',
-        orderId: testOrderId,
-        amount: 44.95,
-        timestamp: new Date().toLocaleTimeString('pt-BR'),
+  const handleVerifyStripeApi = async () => {
+    if (!stripeSk.trim()) {
+      setStripeVerifyStatus('error');
+      setStripeVerifyDetails({
+        errorMsg: 'Por favor, insira a Secret Key (começa com sk_live_ ou sk_test_) no campo abaixo antes de testar.',
       });
-    }, 1500);
+      return;
+    }
+
+    setIsTestingStripeFlow(true);
+    setStripeVerifyStatus('testing');
+
+    try {
+      const res = await fetch('https://api.stripe.com/v1/balance', {
+        headers: {
+          Authorization: `Bearer ${stripeSk.trim()}`,
+        },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStripeVerifyStatus('error');
+        setStripeVerifyDetails({
+          errorMsg: data?.error?.message || 'Chave do Stripe inválida ou recusada pelos servidores da Stripe.',
+        });
+        localStorage.removeItem('ling_stripe_verified');
+      } else {
+        const isLive = Boolean(data.livemode);
+        const availableUsd = data.available?.find((a: any) => a.currency === 'usd')?.amount || 0;
+        const details = {
+          isLive,
+          balanceUsd: (availableUsd / 100).toFixed(2),
+          currency: 'USD',
+          verifiedAt: new Date().toLocaleTimeString('pt-BR'),
+        };
+        setStripeVerifyStatus('success');
+        setStripeVerifyDetails(details);
+        localStorage.setItem('ling_stripe_verified', 'true');
+        localStorage.setItem('ling_stripe_details', JSON.stringify(details));
+        localStorage.setItem('ling_stripe_pk', stripePk.trim());
+        localStorage.setItem('ling_stripe_sk', stripeSk.trim());
+        setStripeSaveMsg(true);
+        setTimeout(() => setStripeSaveMsg(false), 3500);
+        playChimeSound();
+      }
+    } catch (err: any) {
+      setStripeVerifyStatus('error');
+      setStripeVerifyDetails({
+        errorMsg: 'Erro ao conectar aos servidores oficiais da Stripe. Verifique sua conexão à internet.',
+      });
+    } finally {
+      setIsTestingStripeFlow(false);
+    }
   };
 
   // SEO Caption & UTM Link States for Viral Studio
@@ -3215,17 +3224,67 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                 </div>
               </div>
 
-              {/* Stripe Configuration Keys Input Card */}
+              {/* Stripe Configuration Keys Input Card with Live API Verification */}
               <div className="bg-[#001830] text-white rounded-2xl p-5 border border-blue-900 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <span className="text-xs font-bold text-blue-200 uppercase tracking-wider flex items-center gap-1.5">
-                    <ShieldCheck size={15} className="text-emerald-400" />
-                    Insira Suas Chaves da Conta Stripe
+                    <ShieldCheck size={16} className="text-emerald-400" />
+                    Chaves de API da Conta Stripe (Processamento Real em USD)
                   </span>
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2.5 py-1 rounded-full border border-emerald-500/30">
-                    ✓ Pronta para Conectar
-                  </span>
+                  
+                  {stripeVerifyStatus === 'success' ? (
+                    <span className="text-[11px] bg-emerald-500/20 text-emerald-300 font-bold px-3 py-1 rounded-full border border-emerald-500/40 flex items-center gap-1.5 animate-fadeIn">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                      ✓ Conectado Oficialmente ({stripeVerifyDetails?.isLive ? 'Modo Produção / LIVE' : 'Modo Teste / Sandbox'})
+                    </span>
+                  ) : stripeVerifyStatus === 'testing' ? (
+                    <span className="text-[11px] bg-blue-500/20 text-blue-300 font-bold px-3 py-1 rounded-full border border-blue-500/40 flex items-center gap-1.5">
+                      <RefreshCw size={12} className="animate-spin" />
+                      Consultando API da Stripe...
+                    </span>
+                  ) : (
+                    <span className="text-[11px] bg-amber-500/20 text-amber-300 font-bold px-3 py-1 rounded-full border border-amber-500/40">
+                      🟡 Modo Simulação (Nenhuma Chave Ativa)
+                    </span>
+                  )}
                 </div>
+
+                {/* Status Diagnostic Card */}
+                {stripeVerifyStatus === 'success' && stripeVerifyDetails && (
+                  <div className="p-4 bg-emerald-950/60 border border-emerald-500/40 rounded-2xl space-y-2 text-xs text-emerald-200 animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-emerald-300 text-sm flex items-center gap-2">
+                        <CheckCircle2 size={16} className="text-emerald-400" />
+                        Conta Stripe Autenticada e Pronta para Cobrança!
+                      </span>
+                      <span className="text-[10px] text-emerald-400/80">Verificado às {stripeVerifyDetails.verifiedAt}</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-emerald-800/60 text-[11px]">
+                      <div>
+                        <span className="text-emerald-400/70 block">Tipo de Ambiente:</span>
+                        <strong className="text-white">{stripeVerifyDetails.isLive ? 'Produção (Cartões Reais)' : 'Modo Teste (Cartões 4242)'}</strong>
+                      </div>
+                      <div>
+                        <span className="text-emerald-400/70 block">Moeda de Liquidação:</span>
+                        <strong className="text-white">{stripeVerifyDetails.currency || 'USD ($)'}</strong>
+                      </div>
+                      <div>
+                        <span className="text-emerald-400/70 block">Saldo Disponível no Stripe:</span>
+                        <strong className="text-white">${stripeVerifyDetails.balanceUsd || '0.00'} USD</strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {stripeVerifyStatus === 'error' && stripeVerifyDetails?.errorMsg && (
+                  <div className="p-3.5 bg-rose-950/60 border border-rose-500/50 rounded-2xl text-xs text-rose-200 flex items-start gap-2.5 animate-fadeIn">
+                    <AlertTriangle size={18} className="text-rose-400 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-rose-300 block font-bold">Falha ao Conectar com a Stripe:</strong>
+                      <p className="text-[11px] text-rose-200/90 mt-0.5">{stripeVerifyDetails.errorMsg}</p>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
@@ -3250,7 +3309,7 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                       Stripe Secret Key (sk_live_... ou sk_test_...)
                     </label>
                     <input
-                      type="text"
+                      type="password"
                       placeholder="Cole sua Secret Key aqui (ex: sk_live_51P...)"
                       value={stripeSk}
                       onChange={(e) => {
@@ -3266,27 +3325,40 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                 {stripeSaveMsg && (
                   <div className="p-3 bg-emerald-500/20 border border-emerald-400/50 rounded-xl text-xs text-emerald-300 flex items-center gap-2 font-bold animate-in fade-in">
                     <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
-                    <span>Chaves do Stripe salvas com sucesso no painel da loja!</span>
+                    <span>Chaves da Stripe salvas com sucesso no painel da loja!</span>
                   </div>
                 )}
 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-blue-900/60">
                   <p className="text-[11px] text-blue-300">
-                    💡 <strong>Onde pegar essas chaves?</strong> No seu Dashboard do Stripe ➔ <em>Developers (Desenvolvedores)</em> ➔ <em>API Keys (Chaves de API)</em>.
+                    💡 <strong>Onde pegar essas chaves?</strong> No seu Dashboard da Stripe ➔ <em>Developers (Desenvolvedores)</em> ➔ <em>API Keys (Chaves de API)</em>.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      localStorage.setItem('ling_stripe_pk', stripePk);
-                      localStorage.setItem('ling_stripe_sk', stripeSk);
-                      setStripeSaveMsg(true);
-                      setTimeout(() => setStripeSaveMsg(false), 3000);
-                    }}
-                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer transition-colors shrink-0 flex items-center gap-1.5"
-                  >
-                    <Check size={15} />
-                    <span>Salvar Chaves em Produção</span>
-                  </button>
+                  
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      disabled={isTestingStripeFlow}
+                      onClick={() => handleVerifyStripeApi()}
+                      className="flex-1 sm:flex-none px-4 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <RefreshCw size={14} className={isTestingStripeFlow ? 'animate-spin' : ''} />
+                      <span>{isTestingStripeFlow ? 'Verificando...' : '🔍 Testar Conexão Oficial'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        localStorage.setItem('ling_stripe_pk', stripePk);
+                        localStorage.setItem('ling_stripe_sk', stripeSk);
+                        setStripeSaveMsg(true);
+                        setTimeout(() => setStripeSaveMsg(false), 3000);
+                      }}
+                      className="flex-1 sm:flex-none px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <Check size={14} />
+                      <span>Salvar Chaves</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

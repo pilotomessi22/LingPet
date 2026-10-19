@@ -113,9 +113,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         }),
         totalUsd: finalTotal,
         supplierCostUsd: items.reduce((acc, curr) => acc + curr.supplierCost * curr.quantity, 0),
-        profitUsd: Math.max(0, finalTotal - items.reduce((acc, curr) => acc + curr.supplierCost * curr.quantity, 0)),
-        paymentGateway: 'Stripe (Credit Card / Apple Pay)',
-        paymentStatus: 'Paid',
+        paymentGateway: (() => {
+          const verified = localStorage.getItem('ling_stripe_verified') === 'true';
+          const pk = localStorage.getItem('ling_stripe_pk') || '';
+          return verified && pk ? 'Stripe Live Official (USD)' : 'Simulação (Checkout Demo · Sem Chave Stripe)';
+        })(),
+        paymentStatus: localStorage.getItem('ling_stripe_verified') === 'true' ? 'Paid (Stripe)' : 'Paid (Simulado)',
         fulfillmentStatus: 'Aguardando Despacho',
       };
 
