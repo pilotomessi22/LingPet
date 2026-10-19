@@ -376,10 +376,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
   // Orders state persisted in localStorage (starts 100% clean with zero test orders)
   const [orders, setOrders] = useState<AdminOrder[]>(() => {
     try {
-      const isZerado = localStorage.getItem('ling_orders_zerados_v4');
+      const isZerado = localStorage.getItem('ling_orders_zerados_v5');
       if (!isZerado) {
         localStorage.setItem('ling_admin_orders', JSON.stringify([]));
-        localStorage.setItem('ling_orders_zerados_v4', 'true');
+        localStorage.setItem('ling_orders_zerados_v5', 'true');
         return [];
       }
       const stored = localStorage.getItem('ling_admin_orders');
@@ -395,7 +395,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
   const handleClearOrders = () => {
     setOrders([]);
     localStorage.setItem('ling_admin_orders', JSON.stringify([]));
-    localStorage.setItem('ling_orders_zerados_v4', 'true');
+    localStorage.setItem('ling_orders_zerados_v5', 'true');
     setImportSuccessMsg('Todos os pedidos de teste foram zerados com sucesso!');
     setTimeout(() => setImportSuccessMsg(null), 3000);
   };

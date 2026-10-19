@@ -130,221 +130,121 @@ export const SUPPLIER_AGENTS: SupplierAgent[] = [
   },
 ];
 
-const RAW_PRODUCTS: any[] = [];
+export const DEFAULT_REAL_PRODUCTS: Product[] = [
+  {
+    id: 'cj-gate-2034090401252950017',
+    sku: 'LP-GATE-WHITE-01',
+    name: '29.5-45.3" Wide Baby & Dog Safety Gate for Stairs & Doorways (No Drilling Pressure Mounted)',
+    brand: 'Ling Safety™',
+    tagline: 'Pressure-mounted pet & baby safety gate with auto-close walk-through door. Fits 29.5" to 45.3" openings without drilling.',
+    petType: 'Dog',
+    category: 'Walk & Travel',
+    department: 'Dogs',
+    price: 89.95,
+    compareAt: 129.99,
+    supplierCost: 42.32,
+    cjCost: 42.32,
+    cjShippingEstimate: 12.50,
+    totalCjCost: 54.82,
+    netProfit: 35.13,
+    profitMarginPercent: 39,
+    supplier: 'CJ Dropshipping',
+    supplierSku: 'CJFU27913390001',
+    supplierUrl: 'https://www.cjdropshipping.com/product/-p-2034090401252950017.html',
+    supplierWarehouse: 'US Warehouse / CJ Express (Dispatches in 24h)',
+    supplierShippingTime: '3-5 business days via USPS Ground Advantage',
+    rating: 4.9,
+    reviewsCount: 142,
+    badge: '✓ Produto Oficial CJ Dropshipping',
+    isBestseller: true,
+    isLingPick: true,
+    repeatDeliveryEligible: false,
+    inStockAustin: true,
+    heroImage: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1200&q=85',
+    secondaryImage: 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?auto=format&fit=crop&w=1200&q=85',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1200&q=85',
+      'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?auto=format&fit=crop&w=1200&q=85',
+      'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=1200&q=85',
+      'https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&w=1200&q=85',
+    ],
+    description: 'Keep your pets and toddlers safe with this heavy-duty, no-drill pressure-mounted safety gate. Engineered with a one-handed dual-lock walk-through door and auto-close mechanism. Includes modular expansion panels to easily fit openings between 29.5" and 45.3" (75 to 115 cm). Sourced directly from CJ Dropshipping US warehouse for rapid 3-5 day delivery.',
+    keyFeatures: [
+      'No-Drilling Pressure Mount: Installs securely in doorways and stairwells in minutes without wall damage',
+      'Dual-Lock One-Handed Walk-Through Door: Easy for adults to open with one hand, secure against pets and children',
+      'Auto-Close & Stay-Open Dual Mode: Swings shut automatically under 90°; stays wide open when pushed past 90°',
+      'Adjustable 29.5" to 45.3" Width: Includes modular extension kits to fit doors, hallways, and stairs',
+      'Heavy-Duty Reinforced Carbon Steel: High-impact resistance with non-toxic white powder finish',
+      'Dispatched via CJ Dropshipping US Warehouse with tracking in 24 hours',
+    ],
+    specifications: {
+      material: 'Heavy-Duty Carbon Steel with Non-Toxic Anti-Rust White Powder Coat & BPA-Free ABS Fittings',
+      dimensions: 'Fits openings 29.5" – 45.3" (75cm – 115cm) · Height: 30" (76.2cm) · Bar Spacing: 2.16"',
+      weight: '12.8 lbs (5.8 kg)',
+      inTheBox: '1x Main Safety Gate Frame, 2x Extension Panels (7cm & 14cm), 4x Pressure Tension Spindles, 4x Wall Saver Cups, 1x Wrench, 1x Instruction Manual',
+      care: 'Wipe clean with a damp microfiber cloth and mild soap',
+      warranty: '30-Day Risk-Free In-Home Pet Trial Guarantee (100% Refundable)',
+      cjWarehouse: 'US Warehouse / CJ Express (New Jersey & California)',
+      shippingEstimate: 'Dispatches within 24h via USPS Ground Advantage · 3-5 Business Days',
+    },
+    volumeTiers: [
+      {
+        qty: 1,
+        discountPercent: 0,
+        pricePerUnit: 89.95,
+        total: 89.95,
+        savings: 0,
+        netProfit: 35.13,
+        badge: '1 Portão (Padrão)',
+      },
+      {
+        qty: 2,
+        discountPercent: 15,
+        pricePerUnit: 76.45,
+        total: 152.90,
+        savings: 27.00,
+        netProfit: 68.26,
+        badge: '🔥 Leve 2 para Escadas (15% OFF)',
+      },
+      {
+        qty: 3,
+        discountPercent: 25,
+        pricePerUnit: 67.46,
+        total: 202.38,
+        savings: 67.47,
+        netProfit: 95.87,
+        badge: '⚡ Casa Completa Protegida (25% OFF)',
+      },
+    ],
+    sizes: [
+      { name: 'Standard (29.5" – 37.8")', weightLabel: 'Includes 7cm Extension' },
+      { name: 'Wide (29.5" – 45.3")', weightLabel: 'Includes 7cm & 14cm Extensions' },
+    ],
+    colors: [
+      { name: 'Pure White (Branco)', hex: '#FFFFFF', class: 'bg-white border-2 border-gray-300' },
+      { name: 'Matte Black (Preto Fosco)', hex: '#222222', class: 'bg-zinc-800' },
+    ],
+    addOns: [
+      {
+        name: 'Extra Wall-Protection Rubber Cups (Set of 4)',
+        price: 9.95,
+        description: 'Zero-skid silicone pads to protect painted drywall and baseboards',
+      },
+      {
+        name: 'Bottom Ramp Threshold Protector',
+        price: 14.95,
+        description: 'Smooth slope ramp to prevent tripping over the bottom bar',
+      },
+    ],
+  },
+];
 
 export const PRODUCT_SUPPLIER_CATALOG: Record<string, any> = {};
 
-function getProductGallery(raw: (typeof RAW_PRODUCTS)[0]): string[] {
-  const list = [raw.heroImage];
-  if (raw.secondaryImage && raw.secondaryImage !== raw.heroImage) {
-    list.push(raw.secondaryImage);
-  }
-  const fallbackByCat: Record<string, string[]> = {
-    Beds: [
-      'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=1200&q=85',
-    ],
-    Feeding: [
-      'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1200&q=85',
-    ],
-    'Walk & Travel': [
-      'https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1200&q=85',
-    ],
-    Toys: [
-      'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1598133894008-61f7fdb8cc3a?auto=format&fit=crop&w=1200&q=85',
-    ],
-    Grooming: [
-      'https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?auto=format&fit=crop&w=1200&q=85',
-    ],
-    Wellness: [
-      'https://images.unsplash.com/photo-1587764379873-97837921fd44?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&w=1200&q=85',
-    ],
-    Treats: [
-      'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=1200&q=85',
-    ],
-  };
-
-  const extra = fallbackByCat[raw.category] || [
-    'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=1200&q=85',
-  ];
-  extra.forEach((img) => {
-    if (!list.includes(img) && list.length < 4) {
-      list.push(img);
-    }
-  });
-
-  return list;
-}
-
-function getProductSpecifications(
-  raw: (typeof RAW_PRODUCTS)[0],
-  warehouse: string,
-  shippingTime: string
-): ProductSpecifications {
-  const specsMap: Record<string, Partial<ProductSpecifications>> = {
-    Beds: {
-      material: 'CertiPUR-US Orthopedic Memory Foam, High-Density Polyfiber & Waterproof Micro-Sherpa',
-      dimensions: 'Small: 23" x 23" x 7" · Med: 30" x 30" x 8" · Lrg: 36" x 36" x 9"',
-      weight: '3.2 lbs – 5.8 lbs',
-      inTheBox: '1x Orthopedic Bed with Inner Vacuum Seal, 1x Removable Zip Cover, 1x Care Guide',
-      care: '100% Machine Washable cover on cold gentle cycle; tumble dry low or air dry',
-    },
-    Feeding: {
-      material: 'Food-Grade 304 Stainless Steel Basin, Natural Bamboo & BPA-Free ABS Resin',
-      dimensions: 'Fountain: 7.9" x 7.9" x 6.1" (2.5L / 84 oz Capacity) · Bowls: 15.6" x 7.2" x 4.8"',
-      weight: '1.8 lbs – 2.4 lbs',
-      inTheBox: '1x Feeder/Fountain Unit, 2x Stainless Bowls or Active Filter, 1x USB-C Cable, Manual',
-      care: 'Stainless steel bowls are dishwasher safe; rinse filters under cool tap water monthly',
-    },
-    'Walk & Travel': {
-      material: 'Military-Grade 1050D Ripstop Nylon, 3M Scotchlite Reflective Webbing & Zinc Alloy Clasps',
-      dimensions: 'Custom 4-Point Slide Fit (Small to X-Large, Chest 15" to 43")',
-      weight: '0.6 lbs – 1.4 lbs',
-      inTheBox: '1x Ergonomic Harness or Leash, 1x Pet Safety & Sizing Card',
-      care: 'Hand wash with mild detergent; air dry away from direct sunlight',
-    },
-    Toys: {
-      material: '100% Non-Toxic Natural Tree Rubber & Food-Grade Soft Silicone (BPA & Phthalate-Free)',
-      dimensions: 'Ball: 2.8" Dia · Kicker: 11" x 3.5" · Snuffle Mat: 28" x 28"',
-      weight: '0.4 lbs – 1.1 lbs',
-      inTheBox: '1x Interactive Toy, 1x USB-C Rapid Charging Cord (if electronic), 1x User Guide',
-      care: 'Wipe silicone with warm damp cloth; rubber chew toys are dishwasher safe (top rack)',
-    },
-    Grooming: {
-      material: 'Sub-52dB Silent Copper Motor, Surgical Stainless Pins with Resin Massage Tips & ABS',
-      dimensions: 'Vacuum: 11.2" x 8.4" x 13.8" · Slicker Brush: 7.8" x 4.1" x 2.4"',
-      weight: '0.5 lbs (brush) – 4.2 lbs (vacuum kit)',
-      inTheBox: '5x Precision Attachments or 1x Self-Cleaning Tool, 1x Quick-Start Guide',
-      care: 'One-click hair eject button; rinse dust cup and filter under running water monthly',
-    },
-    Wellness: {
-      material: '100% Organic Cold-Pressed Botanicals (Hemp Seed, Chamomile, Valerian) / Dental Enzymes',
-      dimensions: 'Tub: 90 Chews (Net Wt 10.6 oz / 300g) · Toothpaste: 3.5 oz Tube',
-      weight: '0.8 lbs – 1.2 lbs',
-      inTheBox: '1x Sealed Bottle or Kit with Tamper-Evident Safety Foil Seal',
-      care: 'Store in a cool dry place out of direct sunlight; seal lid tightly after each treat',
-    },
-    Treats: {
-      material: '100% Single-Ingredient Wild Alaskan Salmon (Gently Sub-Zero Freeze-Dried)',
-      dimensions: 'Resealable 5.0 oz (142g) Stand-Up Pouch (Equivalent to 25 oz Fresh Fish)',
-      weight: '0.4 lbs',
-      inTheBox: '1x Nitrogen-Flushed Resealable Pouch with Freshness Absorber',
-      care: 'Keep pouch sealed in pantry; feed directly or crumble as food topper',
-    },
-  };
-
-  const base = specsMap[raw.category] || {};
-
-  return {
-    material: base.material || 'Veterinarian-Vetted Eco-Friendly Non-Toxic Pet Materials',
-    dimensions: base.dimensions || 'Universal Size Engineered for Pets',
-    weight: base.weight || '1.1 lbs',
-    inTheBox: base.inTheBox || '1x Authentic Retail Packaged Product, 1x Care Guide',
-    care: base.care || 'Spot clean with pet-safe cleaner or machine wash gentle',
-    warranty: '30-Day Risk-Free In-Home Pet Trial Guarantee (100% Refundable)',
-    cjWarehouse: warehouse || 'US East (New Jersey Warehouse)',
-    shippingEstimate: shippingTime || 'Ships within 24h via USPS Ground Advantage · 3-5 Business Days',
-  };
-}
-
-export const PRODUCTS: Product[] = RAW_PRODUCTS.map((raw) => {
-  const meta = PRODUCT_SUPPLIER_CATALOG[raw.id] || {
-    supplier: 'CJ Dropshipping' as const,
-    supplierSku: `CJ-PET-${raw.id.slice(0, 6).toUpperCase()}`,
-    supplierUrl: 'https://cjdropshipping.com',
-    supplierWarehouse: 'US East (New Jersey Warehouse)',
-    supplierShippingTime: '3-5 business days via USPS Ground Advantage',
-  };
-
-  // Realistic CJ Packet Line-Haul Shipping Estimate to US based on product weight
-  let cjShipping = 3.5;
-  if (raw.category === 'Beds' || raw.category === 'Feeding') {
-    cjShipping = 5.95;
-  } else if (raw.category === 'Walk & Travel' || raw.category === 'Grooming') {
-    cjShipping = 4.5;
-  }
-
-  const cjCost = raw.supplierCost;
-  const cjShippingEstimate = cjShipping;
-  const totalCjCost = Number((cjCost + cjShippingEstimate).toFixed(2));
-  const netProfit = Number((raw.price - totalCjCost).toFixed(2));
-  const profitMarginPercent = Math.max(1, Math.round((netProfit / raw.price) * 100));
-
-  // Multi-Unit Volume Pricing Tiers:
-  // Secret of CJ Dropshipping: shipping 2 or 3 items in the same box costs only slightly more (+35% / +65%),
-  // while order revenue surges, generating huge net profit per order!
-  const priceTier1 = raw.price;
-  const totalTier1 = priceTier1;
-  const profitTier1 = netProfit;
-
-  // Tier 2: 15% OFF per unit
-  const priceTier2 = Number((raw.price * 0.85).toFixed(2));
-  const totalTier2 = Number((priceTier2 * 2).toFixed(2));
-  const savingsTier2 = Number(((raw.price * 2) - totalTier2).toFixed(2));
-  const combinedShipping2 = Number((cjShippingEstimate * 1.35).toFixed(2));
-  const totalCost2 = Number(((cjCost * 2) + combinedShipping2).toFixed(2));
-  const profitTier2 = Number((totalTier2 - totalCost2).toFixed(2));
-
-  // Tier 3: 25% OFF per unit
-  const priceTier3 = Number((raw.price * 0.75).toFixed(2));
-  const totalTier3 = Number((priceTier3 * 3).toFixed(2));
-  const savingsTier3 = Number(((raw.price * 3) - totalTier3).toFixed(2));
-  const combinedShipping3 = Number((cjShippingEstimate * 1.65).toFixed(2));
-  const totalCost3 = Number(((cjCost * 3) + combinedShipping3).toFixed(2));
-  const profitTier3 = Number((totalTier3 - totalCost3).toFixed(2));
-
-  const volumeTiers: ProductVolumePricing[] = [
-    {
-      qty: 1,
-      discountPercent: 0,
-      pricePerUnit: priceTier1,
-      total: totalTier1,
-      savings: 0,
-      netProfit: profitTier1,
-      badge: '1 Unidade (Padrão)',
-    },
-    {
-      qty: 2,
-      discountPercent: 15,
-      pricePerUnit: priceTier2,
-      total: totalTier2,
-      savings: savingsTier2,
-      netProfit: profitTier2,
-      badge: '🔥 Leve 2 com 15% OFF (Mais Vendido)',
-    },
-    {
-      qty: 3,
-      discountPercent: 25,
-      pricePerUnit: priceTier3,
-      total: totalTier3,
-      savings: savingsTier3,
-      netProfit: profitTier3,
-      badge: '⚡ Leve 3 com 25% OFF (Melhor Valor)',
-    },
-  ];
-
-  return {
-    ...raw,
-    ...meta,
-    cjCost,
-    cjShippingEstimate,
-    totalCjCost,
-    netProfit,
-    profitMarginPercent,
-    galleryImages: getProductGallery(raw),
-    specifications: getProductSpecifications(raw, meta.supplierWarehouse, meta.supplierShippingTime),
-    volumeTiers,
-  } as Product;
-});
+export const PRODUCTS: Product[] = DEFAULT_REAL_PRODUCTS;
 
 export function getSavedProducts(): Product[] {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === 'undefined') return DEFAULT_REAL_PRODUCTS;
   try {
     const saved = localStorage.getItem('ling_admin_products');
     if (saved !== null) {
@@ -382,13 +282,26 @@ export function getSavedProducts(): Product[] {
             !p.id.startsWith('calming-ferret') &&
             !p.id.match(/^p-\d+$/)
         );
-        return customProducts;
+
+        if (customProducts.length > 0) {
+          // Check if default CJ products exist; if missing, add them
+          const hasGate = customProducts.some(
+            (p) => p.id === 'cj-gate-2034090401252950017' || p.supplierSku === 'CJFU27913390001'
+          );
+          if (!hasGate) {
+            const combined = [...DEFAULT_REAL_PRODUCTS, ...customProducts];
+            localStorage.setItem('ling_admin_products', JSON.stringify(combined));
+            return combined;
+          }
+          return customProducts;
+        }
       }
     }
   } catch (e) {
     console.error('Error loading saved products:', e);
   }
-  return [];
+  localStorage.setItem('ling_admin_products', JSON.stringify(DEFAULT_REAL_PRODUCTS));
+  return DEFAULT_REAL_PRODUCTS;
 }
 
 export function saveProductsToStorage(products: Product[]): void {
