@@ -29,7 +29,13 @@ export default function App() {
 
   useEffect(() => {
     const handleProductsUpdated = () => {
-      setProducts(getSavedProducts());
+      const updated = getSavedProducts();
+      setProducts(updated);
+      setSelectedProduct((prev) => {
+        if (!prev) return updated[0] || null;
+        const matching = updated.find((p) => p.id === prev.id);
+        return matching || updated[0] || null;
+      });
     };
     window.addEventListener('ling_products_updated', handleProductsUpdated);
     return () => window.removeEventListener('ling_products_updated', handleProductsUpdated);

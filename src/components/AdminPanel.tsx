@@ -48,6 +48,11 @@ import {
   Trash2,
   Edit3,
   Image as ImageIcon,
+  Camera,
+  Upload,
+  Star,
+  MoveLeft,
+  MoveRight,
   RefreshCw,
   Key,
 } from 'lucide-react';
@@ -237,6 +242,53 @@ export const CJ_PRESET_CATEGORIES: ProductPreset[] = [
     tagline: 'Real-time 1080p HD two-way audio pet monitoring camera with instant mobile alerts.',
   },
 ];
+
+const compressImageFile = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const src = e.target?.result as string;
+      if (!src) {
+        resolve('');
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        const MAX_DIM = 1200;
+        let width = img.width;
+        let height = img.height;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width > height) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          } else {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(src);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        try {
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+          resolve(dataUrl);
+        } catch {
+          resolve(src);
+        }
+      };
+      img.onerror = () => resolve(src);
+      img.src = src;
+    };
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+};
 
 const EXCHANGE_RATE_BRL = 5.65; // Current USD to BRL benchmark
 
@@ -585,21 +637,139 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
   const [newProdImage, setNewProdImage] = useState('https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?auto=format&fit=crop&w=1200&q=85');
   const [newProdTagline, setNewProdTagline] = useState('');
 
-  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
+  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
-      if (result) {
-        if (isEdit && editingProduct) {
-          setEditingProduct({ ...editingProduct, heroImage: result });
-        } else {
-          setNewProdImage(result);
+    const result = await compressImageFile(file);
+    if (result) {
+      if (isEdit && editingProduct) {
+        setEditingProduct({
+          ...editingProduct,
+          heroImage: result,
+          galleryImages: editingProduct.galleryImages ? [result, ...editingProduct.galleryImages.slice(1)] : [result],
+        });
+      } else {
+        setNewProdImage(result);
+      }
+    }
+    e.target.value = '';
+  };
+
+  // Dedicated Product Photo Manager Modal State & Handlers
+  const [photoManagerProduct, setPhotoManagerProduct] = useState<Product | null>(null);
+  const [photoManagerGallery, setPhotoManagerGallery] = useState<string[]>([]);
+  const [newPhotoUrlInput, setNewPhotoUrlInput] = useState('');
+  const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
+  const [photoManagerToast, setPhotoManagerToast] = useState<string | null>(null);
+
+  const handleOpenPhotoManager = (prod: Product) => {
+    setPhotoManagerProduct(prod);
+    const existing = prod.galleryImages && prod.galleryImages.length > 0
+      ? [...prod.galleryImages]
+      : ([prod.heroImage, prod.secondaryImage].filter(Boolean) as string[]);
+    setPhotoManagerGallery(existing);
+    setNewPhotoUrlInput('');
+    setPhotoManagerToast(null);
+  };
+
+  const handleDeletePhotoAtIndex = (index: number) => {
+    setPhotoManagerGallery((prev) => prev.filter((_, idx) => idx !== index));
+    setPhotoManagerToast('Foto removida da galeria.');
+    setTimeout(() => setPhotoManagerToast(null), 2000);
+  };
+
+  const handleClearAllPhotos = () => {
+    if (window.confirm('Tem certeza que deseja apagar TODAS as fotos deste produto? A galeria ficará 100% limpa para você enviar apenas as fotos reais que baixou no seu celular.')) {
+      setPhotoManagerGallery([]);
+      setPhotoManagerToast('Todas as fotos foram apagadas. Agora envie as fotos reais baixadas do seu celular.');
+      setTimeout(() => setPhotoManagerToast(null), 3500);
+    }
+  };
+
+  const handleSetHeroPhoto = (index: number) => {
+    setPhotoManagerGallery((prev) => {
+      if (index === 0 || index >= prev.length) return prev;
+      const target = prev[index];
+      const rest = prev.filter((_, idx) => idx !== index);
+      return [target, ...rest];
+    });
+    setPhotoManagerToast('Definida como Foto Principal (Capa)!');
+    setTimeout(() => setPhotoManagerToast(null), 2500);
+  };
+
+  const handleMovePhoto = (index: number, direction: 'left' | 'right') => {
+    setPhotoManagerGallery((prev) => {
+      const targetIdx = direction === 'left' ? index - 1 : index + 1;
+      if (targetIdx < 0 || targetIdx >= prev.length) return prev;
+      const copy = [...prev];
+      const temp = copy[index];
+      copy[index] = copy[targetIdx];
+      copy[targetIdx] = temp;
+      return copy;
+    });
+  };
+
+  const handleDeviceUploadMultiple = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsProcessingPhotos(true);
+    try {
+      const fileList = Array.from(files);
+      const compressedList: string[] = [];
+      for (const file of fileList) {
+        const compressed = await compressImageFile(file);
+        if (compressed) {
+          compressedList.push(compressed);
         }
       }
+      setPhotoManagerGallery((prev) => [...prev, ...compressedList]);
+      setPhotoManagerToast(`✓ ${compressedList.length} foto(s) enviada(s) com sucesso!`);
+      setTimeout(() => setPhotoManagerToast(null), 3500);
+    } catch (err) {
+      console.error(err);
+      setPhotoManagerToast('Erro ao carregar fotos. Tente novamente.');
+    } finally {
+      setIsProcessingPhotos(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleAddPhotoUrl = () => {
+    const url = newPhotoUrlInput.trim();
+    if (!url) return;
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:image')) {
+      alert('Por favor, insira um link válido iniciado por https:// ou envie fotos do seu celular.');
+      return;
+    }
+    setPhotoManagerGallery((prev) => [...prev, url]);
+    setNewPhotoUrlInput('');
+    setPhotoManagerToast('✓ Foto adicionada pelo link!');
+    setTimeout(() => setPhotoManagerToast(null), 2500);
+  };
+
+  const handleSavePhotoManager = () => {
+    if (!photoManagerProduct) return;
+    const hero = photoManagerGallery[0] || 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?auto=format&fit=crop&w=1200&q=85';
+    const secondary = photoManagerGallery[1] || hero;
+
+    const updated: Product = {
+      ...photoManagerProduct,
+      heroImage: hero,
+      secondaryImage: secondary,
+      galleryImages: photoManagerGallery,
     };
-    reader.readAsDataURL(file);
+
+    const nextList = activeProducts.map((p) => (p.id === updated.id ? updated : p));
+    setActiveProducts(nextList);
+    saveProductsToStorage(nextList);
+
+    if (editingProduct && editingProduct.id === updated.id) {
+      setEditingProduct(updated);
+    }
+
+    setImportSuccessMsg(`Fotos do produto "${updated.name}" salvas com sucesso! A loja já exibe as fotos reais.`);
+    setPhotoManagerProduct(null);
+    setTimeout(() => setImportSuccessMsg(null), 4000);
   };
 
   const [autoFillInput, setAutoFillInput] = useState('');
@@ -2065,18 +2235,29 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                           </span>
                         )}
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPreviewProductModal(p);
-                            setSelectedGalleryImg(p.heroImage);
-                          }}
-                          className="absolute bottom-3 right-3 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1 cursor-pointer transition-transform active:scale-95"
-                          title="Ver fotos reais e especificações"
-                        >
-                          <Eye size={14} className="text-[#002244]" />
-                          <span className="text-[11px]">Ver Fotos ({p.galleryImages?.length || 2})</span>
-                        </button>
+                        <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenPhotoManager(p)}
+                            className="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold shadow-md flex items-center gap-1 cursor-pointer transition-transform active:scale-95"
+                            title="Gerenciar, apagar fotos ou enviar do seu celular"
+                          >
+                            <Camera size={13} />
+                            <span className="text-[11px]">Fotos ({p.galleryImages?.length || (p.heroImage ? 1 : 0)})</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPreviewProductModal(p);
+                              setSelectedGalleryImg(p.heroImage);
+                            }}
+                            className="bg-white/90 hover:bg-white text-gray-800 p-1.5 rounded-xl text-xs font-bold shadow-md flex items-center gap-1 cursor-pointer transition-transform active:scale-95"
+                            title="Ver ficha técnica"
+                          >
+                            <Eye size={13} className="text-[#002244]" />
+                          </button>
+                        </div>
                       </div>
 
                       {/* Product Content Details */}
@@ -2245,10 +2426,20 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                             setPreviewProductModal(p);
                             setSelectedGalleryImg(p.heroImage);
                           }}
-                          className="flex-1 bg-[#002244] hover:bg-[#001830] text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                          className="flex-1 bg-[#002244] hover:bg-[#001830] text-white text-xs font-bold py-2.5 px-2.5 rounded-xl flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-xs"
                         >
-                          <Eye size={14} />
+                          <Eye size={13} />
                           <span>Ficha</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenPhotoManager(p)}
+                          className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold py-2.5 px-3 rounded-xl flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+                          title="Gerenciar, apagar e enviar fotos do seu celular"
+                        >
+                          <Camera size={13} className="text-amber-700" />
+                          <span>Fotos ({p.galleryImages?.length || (p.heroImage ? 1 : 0)})</span>
                         </button>
 
                         <button
@@ -4438,13 +4629,27 @@ Ending Call to Action: "Link in bio! Use code LING20 for 20% off plus fast US de
                   Ficha Técnica & Fotos Reais do Produto
                 </h3>
               </div>
-              <button
-                type="button"
-                onClick={() => setPreviewProductModal(null)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
-              >
-                <X size={16} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const prod = previewProductModal;
+                    setPreviewProductModal(null);
+                    handleOpenPhotoManager(prod);
+                  }}
+                  className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+                >
+                  <Camera size={13} />
+                  <span>Gerenciar / Trocar Fotos</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewProductModal(null)}
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             <div className="p-6 space-y-6">
@@ -5049,34 +5254,121 @@ Ending Call to Action: "Link in bio! Use code LING20 for 20% off plus fast US de
                 />
               </div>
 
-              <div>
-                <label className="block font-bold text-gray-700 mb-1">Foto Principal do Produto:</label>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <label className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs shrink-0">
-                      <span>📱 Trocar Foto pela Galeria do Celular</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageFileUpload(e, true)}
-                        className="hidden"
-                      />
-                    </label>
-                    <span className="text-gray-400 text-xs">ou mude o link:</span>
+              {/* Fotos do Produto */}
+              <div className="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block font-bold text-gray-800 text-xs">Fotos e Galeria do Produto:</label>
+                    <span className="text-[11px] text-gray-500">
+                      {editingProduct.galleryImages?.length || (editingProduct.heroImage ? 1 : 0)} foto(s) cadastradas
+                    </span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenPhotoManager(editingProduct)}
+                    className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+                  >
+                    <Camera size={13} />
+                    <span>Gerenciador Avançado de Fotos</span>
+                  </button>
+                </div>
 
-                  <div className="flex items-center gap-3">
+                {/* Quick actions for photos */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs shrink-0">
+                    <Upload size={13} />
+                    <span>📱 Enviar Fotos do Celular</span>
                     <input
-                      type="text"
-                      required
-                      value={editingProduct.heroImage}
-                      onChange={(e) => setEditingProduct({ ...editingProduct, heroImage: e.target.value })}
-                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-gray-300 font-mono text-[11px] text-gray-900"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const files = e.target.files;
+                        if (!files || files.length === 0) return;
+                        const list: string[] = [];
+                        for (const file of Array.from(files)) {
+                          const compressed = await compressImageFile(file);
+                          if (compressed) list.push(compressed);
+                        }
+                        if (list.length > 0) {
+                          const current = editingProduct.galleryImages && editingProduct.galleryImages.length > 0
+                            ? editingProduct.galleryImages
+                            : (editingProduct.heroImage ? [editingProduct.heroImage] : []);
+                          const merged = [...current, ...list];
+                          setEditingProduct({
+                            ...editingProduct,
+                            heroImage: merged[0],
+                            secondaryImage: merged[1] || merged[0],
+                            galleryImages: merged,
+                          });
+                        }
+                        e.target.value = '';
+                      }}
+                      className="hidden"
                     />
-                    <div className="w-12 h-12 rounded-xl border border-gray-300 overflow-hidden bg-gray-50 shrink-0">
-                      <img src={editingProduct.heroImage} alt="Preview" className="w-full h-full object-cover" />
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('Tem certeza que deseja apagar todas as fotos deste produto para enviar fotos novas?')) {
+                        setEditingProduct({
+                          ...editingProduct,
+                          heroImage: '',
+                          secondaryImage: '',
+                          galleryImages: [],
+                        });
+                      }
+                    }}
+                    className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-3 py-2 rounded-xl cursor-pointer flex items-center gap-1 transition-colors"
+                  >
+                    <Trash2 size={13} />
+                    <span>Apagar Todas as Fotos</span>
+                  </button>
+                </div>
+
+                {/* Thumbnails preview */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1">
+                  {(editingProduct.galleryImages && editingProduct.galleryImages.length > 0
+                    ? editingProduct.galleryImages
+                    : editingProduct.heroImage ? [editingProduct.heroImage] : []
+                  ).map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative w-16 h-16 rounded-xl border border-gray-300 overflow-hidden bg-white shrink-0 group"
+                    >
+                      <img src={img} alt={`Foto ${idx}`} className="w-full h-full object-cover" />
+                      {idx === 0 && (
+                        <span className="absolute bottom-0 inset-x-0 bg-amber-500 text-white text-[8px] font-black text-center py-0.5">
+                          CAPA
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = editingProduct.galleryImages && editingProduct.galleryImages.length > 0
+                            ? [...editingProduct.galleryImages]
+                            : [editingProduct.heroImage];
+                          const filtered = current.filter((_, i) => i !== idx);
+                          setEditingProduct({
+                            ...editingProduct,
+                            heroImage: filtered[0] || '',
+                            secondaryImage: filtered[1] || filtered[0] || '',
+                            galleryImages: filtered,
+                          });
+                        }}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-md bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-xs"
+                        title="Apagar foto"
+                      >
+                        <X size={11} />
+                      </button>
                     </div>
-                  </div>
+                  ))}
+                  {(!editingProduct.heroImage && (!editingProduct.galleryImages || editingProduct.galleryImages.length === 0)) && (
+                    <span className="text-gray-400 text-xs italic py-2">
+                      Nenhuma foto adicionada ainda. Envie pelo botão acima.
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -5155,6 +5447,270 @@ Ending Call to Action: "Link in bio! Use code LING20 for 20% off plus fast US de
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DEDICADO: GERENCIADOR DE FOTOS DO PRODUTO */}
+      {photoManagerProduct && (
+        <div className="fixed inset-0 z-70 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-fadeIn">
+          <div className="bg-white text-gray-900 rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl space-y-5 border border-gray-200 my-auto max-h-[92vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-gray-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold shadow-xs">
+                  <Camera size={22} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-black text-[#002244]">
+                      Gerenciador de Fotos do Produto
+                    </h3>
+                    <span className="bg-amber-100 text-amber-900 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-amber-200">
+                      {photoManagerGallery.length} {photoManagerGallery.length === 1 ? 'foto' : 'fotos'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                    {photoManagerProduct.name}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPhotoManagerProduct(null)}
+                className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center font-bold cursor-pointer transition-colors"
+                title="Fechar"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Notification / Toast inside modal */}
+            {photoManagerToast && (
+              <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs font-bold flex items-center justify-between animate-fadeIn">
+                <div className="flex items-center gap-2">
+                  <Check size={16} className="text-amber-700" />
+                  <span>{photoManagerToast}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Action Bar: Upload from Device & Clear All & Add URL */}
+            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200/80 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Upload from Mobile / PC */}
+                  <label className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black text-xs px-4 py-2.5 rounded-xl cursor-pointer flex items-center gap-2 shadow-sm transition-all">
+                    <Upload size={15} />
+                    <span>{isProcessingPhotos ? 'Carregando fotos...' : '📱 Enviar Fotos do Celular / Computador'}</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      disabled={isProcessingPhotos}
+                      onChange={handleDeviceUploadMultiple}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {/* Clear all photos button */}
+                  {photoManagerGallery.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAllPhotos}
+                      className="bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-800 border border-red-200 font-bold text-xs px-3.5 py-2.5 rounded-xl cursor-pointer flex items-center gap-1.5 transition-colors"
+                      title="Apagar todas as fotos para subir apenas as fotos reais baixadas"
+                    >
+                      <Trash2 size={14} />
+                      <span>Limpar Todas as Fotos</span>
+                    </button>
+                  )}
+                </div>
+
+                <span className="text-[11px] text-gray-500 font-medium">
+                  JPG, PNG, WEBP · Múltiplas fotos suportadas
+                </span>
+              </div>
+
+              {/* Paste URL input */}
+              <div className="pt-2 border-t border-gray-200/60 flex items-center gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="url"
+                    placeholder="Cole aqui um link de imagem (ex: https://.../foto.jpg)"
+                    value={newPhotoUrlInput}
+                    onChange={(e) => setNewPhotoUrlInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddPhotoUrl();
+                      }
+                    }}
+                    className="w-full pl-3 pr-3 py-2 rounded-xl border border-gray-300 font-mono text-xs text-gray-900 bg-white placeholder:text-gray-400 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddPhotoUrl}
+                  className="bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs px-3.5 py-2 rounded-xl cursor-pointer transition-colors shrink-0 flex items-center gap-1"
+                >
+                  <Plus size={14} />
+                  <span>Adicionar Link</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Gallery Grid */}
+            <div>
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="font-bold text-xs text-gray-700 uppercase tracking-wider">
+                  Fotos do Produto ({photoManagerGallery.length})
+                </span>
+                <span className="text-[11px] text-gray-500">
+                  A 1ª foto é a <strong>Capa Principal</strong> da vitrine
+                </span>
+              </div>
+
+              {photoManagerGallery.length === 0 ? (
+                <div className="border-2 border-dashed border-gray-300 rounded-3xl p-8 text-center bg-gray-50/50 space-y-3">
+                  <div className="w-14 h-14 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+                    <Camera size={26} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-gray-800">
+                      Nenhuma foto restante na galeria
+                    </h4>
+                    <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
+                      As fotos foram apagadas com sucesso! Toque no botão azul <strong>"Enviar Fotos do Celular / Computador"</strong> acima para subir as fotos reais que você baixou.
+                    </p>
+                  </div>
+                  <label className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer shadow-sm transition-all">
+                    <Upload size={14} />
+                    <span>Selecionar Fotos no Aparelho</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleDeviceUploadMultiple}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 max-h-[46vh] overflow-y-auto p-1">
+                  {photoManagerGallery.map((imgUrl, idx) => {
+                    const isHero = idx === 0;
+
+                    return (
+                      <div
+                        key={`${imgUrl.slice(0, 30)}-${idx}`}
+                        className={`relative rounded-2xl overflow-hidden border-2 transition-all bg-white shadow-xs flex flex-col ${
+                          isHero
+                            ? 'border-amber-500 ring-2 ring-amber-400/30'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        {/* Image Preview */}
+                        <div className="relative aspect-square w-full bg-gray-100 overflow-hidden group">
+                          <img
+                            src={imgUrl}
+                            alt={`Foto ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.opacity = '0.3';
+                            }}
+                          />
+
+                          {/* Primary Cover Badge */}
+                          {isHero ? (
+                            <span className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow-sm flex items-center gap-1">
+                              <Star size={11} className="fill-white" />
+                              <span>Capa Principal</span>
+                            </span>
+                          ) : (
+                            <span className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg backdrop-blur-xs">
+                              Foto {idx + 1}
+                            </span>
+                          )}
+
+                          {/* Delete Photo Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePhotoAtIndex(idx)}
+                            className="absolute top-2 right-2 w-7 h-7 rounded-xl bg-red-600/90 hover:bg-red-700 text-white flex items-center justify-center shadow-md cursor-pointer transition-transform active:scale-90"
+                            title="Apagar esta foto"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+
+                        {/* Controls underneath */}
+                        <div className="p-2 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-1 text-[11px]">
+                          {!isHero ? (
+                            <button
+                              type="button"
+                              onClick={() => handleSetHeroPhoto(idx)}
+                              className="text-amber-800 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 font-bold px-2 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-[10px]"
+                              title="Tornar esta a foto principal da vitrine"
+                            >
+                              <Star size={11} />
+                              <span>Tornar Capa</span>
+                            </button>
+                          ) : (
+                            <span className="text-amber-700 font-black text-[10px] flex items-center gap-1">
+                              <Check size={12} />
+                              <span>Capa Atual</span>
+                            </span>
+                          )}
+
+                          {/* Reordering arrows */}
+                          <div className="flex items-center gap-1 ml-auto">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => handleMovePhoto(idx, 'left')}
+                              className="w-6 h-6 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center cursor-pointer"
+                              title="Mover para esquerda"
+                            >
+                              <MoveLeft size={12} />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === photoManagerGallery.length - 1}
+                              onClick={() => handleMovePhoto(idx, 'right')}
+                              className="w-6 h-6 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center cursor-pointer"
+                              title="Mover para direita"
+                            >
+                              <MoveRight size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setPhotoManagerProduct(null)}
+                className="px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors cursor-pointer text-xs"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSavePhotoManager}
+                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer transition-colors shadow-md flex items-center gap-2 text-xs"
+              >
+                <Check size={16} />
+                <span>Salvar Fotos no Site ({photoManagerGallery.length})</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
