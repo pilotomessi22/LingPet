@@ -101,133 +101,140 @@ export interface AdminOrder {
   dispatchedAt?: string;
 }
 
-// Initial realistic orders so the user can test the dispatch flow immediately
-const INITIAL_ADMIN_ORDERS: AdminOrder[] = [
+// Store starts with zero test orders - ready for real customer sales
+const INITIAL_ADMIN_ORDERS: AdminOrder[] = [];
+
+export interface ProductPreset {
+  key: string;
+  label: string;
+  icon: string;
+  name: string;
+  category: 'Beds' | 'Feeding' | 'Walk & Travel' | 'Toys' | 'Grooming' | 'Wellness' | 'Treats';
+  petType: 'Dog' | 'Cat' | 'All Pets';
+  department: 'Dogs' | 'Cats' | 'Wellness';
+  image: string;
+  cjCost: number;
+  cjShipping: number;
+  tagline: string;
+}
+
+export const CJ_PRESET_CATEGORIES: ProductPreset[] = [
   {
-    id: 'ord-101',
-    orderNumber: 'LP-US-948102',
-    date: 'Hoje, há 18 minutos',
-    customerName: 'Sarah Miller',
-    customerEmail: 'sarah.miller@gmail.com',
-    customerPhone: '+1 (305) 555-0194',
-    shippingAddress: {
-      street: '1402 Brickell Ave, Apt 18B',
-      city: 'Miami',
-      state: 'FL',
-      zip: '33131',
-      country: 'United States',
-    },
-    items: [
-      {
-        sku: 'LP-BED-C9-M',
-        name: 'The Cloud9™ Orthopedic Calming Pet Bed',
-        size: 'Medium (30")',
-        color: 'Sage Mist',
-        quantity: 1,
-        unitPrice: 44.95,
-        supplierCost: 15.5,
-        supplier: 'CJ Dropshipping',
-        supplierSku: 'CJ-PET-BED901',
-        supplierUrl: 'https://cjdropshipping.com',
-      },
-      {
-        sku: 'LP-DENT-CH-S',
-        name: 'DentalChew™ Enzymatic Plaque Defense Rings',
-        size: 'Small / Medium',
-        color: 'Natural',
-        quantity: 1,
-        unitPrice: 14.95,
-        supplierCost: 3.5,
-        supplier: 'Zendrop',
-        supplierSku: 'ZD-DENT-041',
-        supplierUrl: 'https://zendrop.com',
-      },
-    ],
-    totalUsd: 59.9,
-    supplierCostUsd: 19.0,
-    profitUsd: 40.9,
-    paymentGateway: 'Stripe (Credit Card / Apple Pay)',
-    paymentStatus: 'Paid',
-    fulfillmentStatus: 'Aguardando Despacho',
-    shippingMethod: 'Express Delivery ($9.95 · 2 to 4 Days)',
-    dispatchPriority: 'urgent_2h',
+    key: 'bed',
+    label: 'Caminha / Almofada',
+    icon: '🛏️',
+    name: 'Ultra-Soft Orthopedic Calming Pet Bed',
+    category: 'Beds',
+    petType: 'Dog',
+    department: 'Dogs',
+    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1200&q=85',
+    cjCost: 12.80,
+    cjShipping: 5.20,
+    tagline: 'Veterinarian-approved orthopedic joint relief bed with 24h US dispatch via USPS.',
   },
   {
-    id: 'ord-102',
-    orderNumber: 'LP-US-948088',
-    date: 'Hoje, há 1 hora',
-    customerName: 'Michael Brandon',
-    customerEmail: 'm.brandon99@yahoo.com',
-    customerPhone: '+1 (303) 881-2291',
-    shippingAddress: {
-      street: '840 16th St Mall, Suite 400',
-      city: 'Denver',
-      state: 'CO',
-      zip: '80202',
-      country: 'United States',
-    },
-    items: [
-      {
-        sku: 'LP-HARN-AG-L',
-        name: 'AirGlide™ Zero-Pull Ergonomic Dog Harness',
-        size: 'Large (Chest 28-35")',
-        color: 'Sunset Amber',
-        quantity: 1,
-        unitPrice: 28.5,
-        supplierCost: 7.2,
-        supplier: 'CJ Dropshipping',
-        supplierSku: 'CJ-HARN-332',
-        supplierUrl: 'https://cjdropshipping.com',
-      },
-    ],
-    totalUsd: 28.5,
-    supplierCostUsd: 7.2,
-    profitUsd: 21.3,
-    paymentGateway: 'Stripe (Credit Card / Apple Pay)',
-    paymentStatus: 'Paid',
-    fulfillmentStatus: 'Aguardando Despacho',
-    shippingMethod: 'Standard Delivery ($4.95 · 3 to 5 Days)',
-    dispatchPriority: 'standard_24h',
+    key: 'fountain',
+    label: 'Bebedouro / Comedouro',
+    icon: '🥣',
+    name: 'AquaPure™ Ultra-Quiet Wireless Pet Fountain',
+    category: 'Feeding',
+    petType: 'Cat',
+    department: 'Cats',
+    image: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=1200&q=85',
+    cjCost: 11.20,
+    cjShipping: 4.90,
+    tagline: 'Triple-filtration automatic hydration system keeps pets drinking fresh water all day.',
   },
   {
-    id: 'ord-103',
-    orderNumber: 'LP-US-947950',
-    date: 'Ontem às 21:40',
-    customerName: 'Jessica Thorne',
-    customerEmail: 'jess.thorne@icloud.com',
-    customerPhone: '+1 (206) 412-9011',
-    shippingAddress: {
-      street: '2101 4th Avenue',
-      city: 'Seattle',
-      state: 'WA',
-      zip: '98121',
-      country: 'United States',
-    },
-    items: [
-      {
-        sku: 'LP-FOUNT-AQ-STD',
-        name: 'AquaPure™ Ultra-Quiet Wireless Pet Fountain',
-        size: 'Standard 2.5L',
-        color: 'Matte Sage & White',
-        quantity: 1,
-        unitPrice: 38.9,
-        supplierCost: 11.5,
-        supplier: 'Zendrop',
-        supplierSku: 'ZD-FOUNT-771',
-        supplierUrl: 'https://zendrop.com',
-      },
-    ],
-    totalUsd: 38.9,
-    supplierCostUsd: 11.5,
-    profitUsd: 27.4,
-    paymentGateway: 'Stripe (Credit Card / Apple Pay)',
-    paymentStatus: 'Paid',
-    fulfillmentStatus: 'Despachado',
-    shippingMethod: 'Express Delivery ($9.95 · 2 to 4 Days)',
-    dispatchPriority: 'urgent_2h',
-    trackingNumber: '9400111899562537829104',
-    carrier: 'USPS Priority Express',
-    dispatchedAt: 'Ontem às 22:15',
+    key: 'harness',
+    label: 'Guia / Peitoral / Coleira',
+    icon: '🦮',
+    name: 'AirGlide™ Zero-Pull Ergonomic Dog Harness',
+    category: 'Walk & Travel',
+    petType: 'Dog',
+    department: 'Dogs',
+    image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&w=1200&q=85',
+    cjCost: 8.50,
+    cjShipping: 3.80,
+    tagline: 'Breathable, pressure-free harness designed to eliminate neck strain during daily walks.',
+  },
+  {
+    key: 'toy',
+    label: 'Brinquedo / Mordedor',
+    icon: '🎾',
+    name: 'Interactive Smart Bouncing Motion Pet Toy',
+    category: 'Toys',
+    petType: 'All Pets',
+    department: 'Wellness',
+    image: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=85',
+    cjCost: 6.40,
+    cjShipping: 3.50,
+    tagline: 'Smart motion-activated pet toy stimulates exercise and reduces boredom and separation anxiety.',
+  },
+  {
+    key: 'grooming',
+    label: 'Escova / Pente / Tosa',
+    icon: '🚿',
+    name: 'GroomPro™ Low-Noise Pet Hair Brush & Vacuum',
+    category: 'Grooming',
+    petType: 'All Pets',
+    department: 'Wellness',
+    image: 'https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=1200&q=85',
+    cjCost: 14.50,
+    cjShipping: 4.80,
+    tagline: 'Professional 1-click self-cleaning shedding brush that captures loose hair with zero mess.',
+  },
+  {
+    key: 'car',
+    label: 'Capa Carro / Transporte',
+    icon: '🚗',
+    name: 'SafeJourney™ Waterproof Dog Car Seat Cover',
+    category: 'Walk & Travel',
+    petType: 'Dog',
+    department: 'Dogs',
+    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=1200&q=85',
+    cjCost: 14.80,
+    cjShipping: 6.20,
+    tagline: '100% waterproof scratch-resistant backseat protector fits all US vehicles and trucks.',
+  },
+  {
+    key: 'scratch',
+    label: 'Arranhador / Torre Gato',
+    icon: '🐱',
+    name: 'PurrClaw™ Natural Sisal Cat Scratching Post',
+    category: 'Toys',
+    petType: 'Cat',
+    department: 'Cats',
+    image: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&w=1200&q=85',
+    cjCost: 13.90,
+    cjShipping: 6.40,
+    tagline: 'Durable multi-angle scratching post saves home furniture and satisfies natural feline instincts.',
+  },
+  {
+    key: 'treat',
+    label: 'Petisco / Snack Natural',
+    icon: '🥩',
+    name: 'WildBites™ 100% Alaskan Freeze-Dried Pet Treats',
+    category: 'Treats',
+    petType: 'All Pets',
+    department: 'Wellness',
+    image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1200&q=85',
+    cjCost: 5.20,
+    cjShipping: 3.20,
+    tagline: 'Grain-free single-ingredient human-grade treats packed with pure omega-3 protein.',
+  },
+  {
+    key: 'wellness',
+    label: 'Saúde & Bem-Estar',
+    icon: '🌿',
+    name: 'PetGuard™ HD Smart Night-Vision Pet Camera',
+    category: 'Wellness',
+    petType: 'All Pets',
+    department: 'Wellness',
+    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=1200&q=85',
+    cjCost: 16.50,
+    cjShipping: 4.50,
+    tagline: 'Real-time 1080p HD two-way audio pet monitoring camera with instant mobile alerts.',
   },
 ];
 
@@ -366,9 +373,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     }, 2500);
   };
 
-  // Orders state persisted in localStorage
+  // Orders state persisted in localStorage (starts 100% clean with zero test orders)
   const [orders, setOrders] = useState<AdminOrder[]>(() => {
     try {
+      const isZerado = localStorage.getItem('ling_orders_zerados_v4');
+      if (!isZerado) {
+        localStorage.setItem('ling_admin_orders', JSON.stringify([]));
+        localStorage.setItem('ling_orders_zerados_v4', 'true');
+        return [];
+      }
       const stored = localStorage.getItem('ling_admin_orders');
       if (stored) {
         return JSON.parse(stored);
@@ -376,8 +389,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     } catch (e) {
       console.error(e);
     }
-    return INITIAL_ADMIN_ORDERS;
+    return [];
   });
+
+  const handleClearOrders = () => {
+    setOrders([]);
+    localStorage.setItem('ling_admin_orders', JSON.stringify([]));
+    localStorage.setItem('ling_orders_zerados_v4', 'true');
+    setImportSuccessMsg('Todos os pedidos de teste foram zerados com sucesso!');
+    setTimeout(() => setImportSuccessMsg(null), 3000);
+  };
 
   // Selected order for 1-Click semi-automatic dispatch
   const [dispatchOrder, setDispatchOrder] = useState<AdminOrder | null>(null);
@@ -594,22 +615,55 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     setNewProdPrice(price.toFixed(2));
   };
 
+  const [detectedRawSku, setDetectedRawSku] = useState<string | null>(null);
+
+  const applyProductPreset = (presetKey: string, customSku?: string) => {
+    const preset = CJ_PRESET_CATEGORIES.find((p) => p.key === presetKey) || CJ_PRESET_CATEGORIES[0];
+    const totalCost = preset.cjCost + preset.cjShipping;
+    const targetMargin = 0.60;
+    let price = Number((totalCost / (1 - targetMargin)).toFixed(2));
+    price = Math.ceil(price) - 0.05;
+
+    const finalSku = customSku || newProdSku || `CJ-PET-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    setNewProdSupplier('CJ Dropshipping');
+    setNewProdName(preset.name);
+    setNewProdCategory(preset.category);
+    setNewProdPet(preset.petType);
+    setNewProdImage(preset.image);
+    setNewProdCost(preset.cjCost.toFixed(2));
+    setNewProdShipping(preset.cjShipping.toFixed(2));
+    setNewProdPrice(price.toFixed(2));
+    setNewProdSku(finalSku);
+    setNewProdTagline(preset.tagline);
+
+    setImportSuccessMsg(
+      `✓ Dados de "${preset.label}" carregados para o SKU ${finalSku} com 60% de lucro! Você pode editar qualquer campo.`
+    );
+    setTimeout(() => setImportSuccessMsg(null), 3500);
+  };
+
   const handleAutoFillAndOpen = (query: string) => {
-    handleAutoFillFromCjLinkOrSku(query || 'caminha pet');
+    handleAutoFillFromCjLinkOrSku(query);
     setIsAddProductOpen(true);
   };
 
   const handleAutoFillFromCjLinkOrSku = (inputStr: string) => {
     const rawInput = inputStr.trim();
+    if (!rawInput) {
+      setIsAddProductOpen(true);
+      return;
+    }
+
     const query = rawInput.toLowerCase();
 
+    // Check if input is a CJ URL or has a product link
     let extractedTitle = '';
     if (rawInput.includes('cjdropshipping.com') || rawInput.includes('/product/')) {
       try {
         const urlObj = new URL(rawInput.startsWith('http') ? rawInput : `https://${rawInput}`);
         const pathSegments = urlObj.pathname.split('/').filter(Boolean);
         const lastPart = pathSegments[pathSegments.length - 1] || '';
-        // E.g. anti-anxiety-orthopedic-calming-dog-bed-p-189381.html
         const cleanSlug = lastPart
           .replace(/-p-\d+.*$/i, '')
           .replace(/\.html.*$/i, '')
@@ -622,18 +676,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
             .join(' ');
         }
       } catch {
-        // Fallback to text matching
+        // Fallback
       }
     }
 
-    let name = extractedTitle || 'Ultra-Soft Orthopedic Calming Pet Bed';
-    let category: 'Beds' | 'Feeding' | 'Walk & Travel' | 'Toys' | 'Grooming' | 'Wellness' | 'Treats' = 'Beds';
-    let petType: 'Dog' | 'Cat' | 'All Pets' = 'Dog';
-    let image = 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1200&q=85';
-    let cost = 12.50;
-    let ship = 4.50;
-    let skuStr = rawInput && !rawInput.includes('http') ? rawInput : `CJ-PET-${Math.floor(1000 + Math.random() * 9000)}`;
+    // Check if input is a raw SKU code (e.g. "CJMY12345", "CJJJ...", "ZD...", or alphanumeric without spaces)
+    const isAlphanumericSku = /^[A-Za-z0-9\-_]{4,30}$/.test(rawInput) && !rawInput.includes(' ');
 
+    // Match keywords
+    let matchedKey: string | null = null;
     if (
       query.includes('fountain') ||
       query.includes('water') ||
@@ -644,12 +695,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       query.includes('comedouro') ||
       query.includes('tigela')
     ) {
-      name = extractedTitle || 'AquaPure™ Ultra-Quiet Wireless Pet Fountain';
-      category = 'Feeding';
-      petType = query.includes('dog') || query.includes('cao') || query.includes('cachorro') ? 'Dog' : 'Cat';
-      image = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=1200&q=85';
-      cost = 11.20;
-      ship = 4.90;
+      matchedKey = 'fountain';
     } else if (
       query.includes('car seat') ||
       query.includes('seat cover') ||
@@ -660,12 +706,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       query.includes('banco') ||
       query.includes('carro')
     ) {
-      name = extractedTitle || 'SafeJourney™ Waterproof Dog Car Seat Cover';
-      category = 'Walk & Travel';
-      petType = 'Dog';
-      image = 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=1200&q=85';
-      cost = 14.80;
-      ship = 6.20;
+      matchedKey = 'car';
     } else if (
       query.includes('harness') ||
       query.includes('leash') ||
@@ -675,12 +716,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       query.includes('collar') ||
       query.includes('peitoral')
     ) {
-      name = extractedTitle || 'AirGlide™ Zero-Pull Ergonomic Dog Harness';
-      category = 'Walk & Travel';
-      petType = 'Dog';
-      image = 'https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&w=1200&q=85';
-      cost = 8.50;
-      ship = 3.80;
+      matchedKey = 'harness';
     } else if (
       query.includes('scratch') ||
       query.includes('arranhador') ||
@@ -688,12 +724,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       query.includes('post') ||
       query.includes('torre')
     ) {
-      name = extractedTitle || 'PurrClaw™ Multi-Level Natural Sisal Cat Scratcher';
-      category = 'Toys';
-      petType = 'Cat';
-      image = 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&w=1200&q=85';
-      cost = 13.90;
-      ship = 6.40;
+      matchedKey = 'scratch';
     } else if (
       query.includes('toy') ||
       query.includes('brinquedo') ||
@@ -703,12 +734,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       query.includes('bolinha') ||
       query.includes('mordedor')
     ) {
-      name = extractedTitle || 'Interactive Smart Bouncing Motion Pet Toy';
-      category = 'Toys';
-      petType = 'All Pets';
-      image = 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=85';
-      cost = 6.40;
-      ship = 3.50;
+      matchedKey = 'toy';
     } else if (
       query.includes('groom') ||
       query.includes('brush') ||
@@ -720,12 +746,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       query.includes('shampoo') ||
       query.includes('pelo')
     ) {
-      name = extractedTitle || 'GroomPro™ Low-Noise Pet Hair Brush & Vacuum';
-      category = 'Grooming';
-      petType = 'All Pets';
-      image = 'https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=1200&q=85';
-      cost = 14.50;
-      ship = 4.80;
+      matchedKey = 'grooming';
     } else if (
       query.includes('snack') ||
       query.includes('treat') ||
@@ -734,24 +755,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       query.includes('petisco') ||
       query.includes('dental')
     ) {
-      name = extractedTitle || 'WildBites™ 100% Alaskan Freeze-Dried Pet Treats';
-      category = 'Treats';
-      petType = 'All Pets';
-      image = 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1200&q=85';
-      cost = 5.20;
-      ship = 3.20;
+      matchedKey = 'treat';
     } else if (
       query.includes('camera') ||
       query.includes('gps') ||
       query.includes('rastreador') ||
       query.includes('monitor')
     ) {
-      name = extractedTitle || 'PetGuard™ HD Smart Night-Vision Pet Camera';
-      category = 'Wellness';
-      petType = 'All Pets';
-      image = 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=1200&q=85';
-      cost = 16.50;
-      ship = 4.50;
+      matchedKey = 'wellness';
     } else if (
       query.includes('bed') ||
       query.includes('cama') ||
@@ -759,37 +770,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       query.includes('mat') ||
       query.includes('pillow') ||
       query.includes('calming') ||
-      query.includes('tapete')
+      query.includes('tapete') ||
+      query.includes('donut')
     ) {
-      name = extractedTitle || 'Ultra-Soft Orthopedic Calming Pet Bed';
-      category = 'Beds';
-      petType = 'Dog';
-      image = 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1200&q=85';
-      cost = 12.80;
-      ship = 5.20;
+      matchedKey = 'bed';
     }
 
-    // Calculate selling price targeting 60% net profit margin (sweet spot in 50% - 65% target)
-    const totalCost = cost + ship;
-    const targetMargin = 0.60;
-    let calculatedPrice = Number((totalCost / (1 - targetMargin)).toFixed(2));
-    calculatedPrice = Math.ceil(calculatedPrice) - 0.05;
+    if (isAlphanumericSku && !matchedKey) {
+      // User pasted an exact CJ SKU code
+      setNewProdSku(rawInput);
+      setDetectedRawSku(rawInput);
+      setNewProdSupplier('CJ Dropshipping');
+      setNewProdName(`CJ Dropshipping Product (${rawInput})`);
+      setIsAddProductOpen(true);
+      setImportSuccessMsg(`📦 SKU "${rawInput}" registrado! Escolha o tipo do produto para preencher fotos e custos.`);
+      setTimeout(() => setImportSuccessMsg(null), 5000);
+      return;
+    }
 
-    setNewProdSupplier('CJ Dropshipping');
-    setNewProdName(name);
-    setNewProdCategory(category);
-    setNewProdPet(petType);
-    setNewProdImage(image);
-    setNewProdCost(cost.toFixed(2));
-    setNewProdShipping(ship.toFixed(2));
-    setNewProdPrice(calculatedPrice.toFixed(2));
-    setNewProdSku(skuStr);
-    setNewProdTagline(`Veterinarian-approved ${category.toLowerCase()} essentials with 24h US dispatch via USPS.`);
-
-    setImportSuccessMsg(
-      `Dados do produto CJ carregados com sucesso! Foto, preço e margem de 60% prontos. Edite o que quiser e publique.`
-    );
-    setTimeout(() => setImportSuccessMsg(null), 4000);
+    const presetToUse = matchedKey || 'bed';
+    const skuToUse = isAlphanumericSku ? rawInput : (rawInput && !rawInput.includes('http') ? rawInput : `CJ-PET-${Math.floor(1000 + Math.random() * 9000)}`);
+    setDetectedRawSku(isAlphanumericSku ? rawInput : null);
+    applyProductPreset(presetToUse, skuToUse);
+    if (extractedTitle) {
+      setNewProdName(extractedTitle);
+    }
+    setIsAddProductOpen(true);
   };
 
   const handleAddRealProduct = (e: React.FormEvent) => {
@@ -1502,6 +1508,18 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                   <option value="pending">Aguardando Despacho</option>
                   <option value="dispatched">Já Despachados</option>
                 </select>
+
+                {orders.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearOrders}
+                    className="bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs px-3 py-2 rounded-xl border border-red-200 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
+                    title="Remover todos os pedidos de teste"
+                  >
+                    <Trash2 size={13} />
+                    <span>Zerar Pedidos ({orders.length})</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1523,8 +1541,18 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                 <tbody className="divide-y divide-gray-100 font-medium">
                   {filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-12 text-center text-gray-400">
-                        Nenhum pedido encontrado para o filtro selecionado.
+                      <td colSpan={8} className="py-14 text-center">
+                        <div className="max-w-sm mx-auto space-y-2">
+                          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
+                            <ShoppingBag size={24} />
+                          </div>
+                          <p className="font-black text-gray-800 text-sm">
+                            Lista de Pedidos Zerada e Limpa!
+                          </p>
+                          <p className="text-gray-400 text-xs leading-relaxed">
+                            Todos os pedidos de teste foram removidos. Quando um cliente comprar na sua loja pelo Stripe, o pedido aparecerá aqui com os dados prontos para despacho na CJ Dropshipping.
+                          </p>
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -1724,6 +1752,30 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                   <Zap size={16} className="fill-stone-950" />
                   <span>⚡ Importar & Preencher Produto</span>
                 </button>
+              </div>
+
+              {/* 1-Click Category Shortcuts */}
+              <div className="pt-2.5 border-t border-white/15 space-y-1.5">
+                <span className="text-[11px] font-bold text-amber-300 block">
+                  ⚡ Ou selecione o tipo do seu produto na CJ para abrir preenchido com 1 clique:
+                </span>
+                <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-1.5">
+                  {CJ_PRESET_CATEGORIES.map((preset) => (
+                    <button
+                      key={preset.key}
+                      type="button"
+                      onClick={() => {
+                        applyProductPreset(preset.key, autoFillInput.trim() || undefined);
+                        setIsAddProductOpen(true);
+                      }}
+                      className="bg-white/10 hover:bg-amber-400 hover:text-stone-950 text-white text-[11px] font-bold py-2 px-1 rounded-xl border border-white/15 transition-all text-center flex flex-col items-center justify-center gap-0.5 cursor-pointer shadow-xs"
+                      title={preset.name}
+                    >
+                      <span className="text-base">{preset.icon}</span>
+                      <span className="truncate w-full text-[10px]">{preset.label.split('/')[0].trim()}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Guarantees & Info */}
@@ -4596,10 +4648,10 @@ Ending Call to Action: "Link in bio! Use code LING20 for 20% off plus fast US de
 
             <form onSubmit={handleAddRealProduct} className="space-y-4 text-xs">
               {/* ⚡ PREENCHIMENTO AUTOMÁTICO POR LINK OU SKU DA CJ DROPSHIPPING */}
-              <div className="p-4 bg-gradient-to-r from-blue-900 via-[#002244] to-[#0F2942] text-white rounded-2xl border border-blue-700 shadow-md space-y-2.5">
+              <div className="p-4 sm:p-5 bg-gradient-to-r from-blue-900 via-[#002244] to-[#0F2942] text-white rounded-2xl border-2 border-blue-600 shadow-md space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="font-extrabold text-xs flex items-center gap-1.5 text-amber-300 uppercase tracking-wider">
-                    <Zap size={15} />
+                    <Zap size={15} className="fill-amber-300" />
                     <span>Cole o Link ou SKU da CJ (Auto-Preenchimento)</span>
                   </label>
                   <span className="text-[10px] text-emerald-300 font-bold bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/40">
@@ -4610,9 +4662,15 @@ Ending Call to Action: "Link in bio! Use code LING20 for 20% off plus fast US de
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
-                    placeholder="Ex: https://cjdropshipping.com/product/... ou CJ-PET-8812 ou 'caminha de cachorro'"
+                    placeholder="Cole o link ou SKU da CJ (ex: https://cjdropshipping.com/product/... ou CJ-PET-8812)"
                     value={autoFillInput}
                     onChange={(e) => setAutoFillInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAutoFillFromCjLinkOrSku(autoFillInput);
+                      }
+                    }}
                     className="flex-1 bg-white text-gray-900 px-3.5 py-2.5 rounded-xl text-xs font-medium placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-amber-400"
                   />
                   <button
@@ -4620,13 +4678,47 @@ Ending Call to Action: "Link in bio! Use code LING20 for 20% off plus fast US de
                     onClick={() => handleAutoFillFromCjLinkOrSku(autoFillInput)}
                     className="bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-xs px-4 py-2.5 rounded-xl cursor-pointer transition-all shrink-0 flex items-center justify-center gap-1.5 shadow-sm"
                   >
-                    <Zap size={15} />
+                    <Zap size={15} className="fill-stone-950" />
                     <span>⚡ Preencher Automático</span>
                   </button>
                 </div>
 
+                {/* SKU Badge when SKU is detected or present */}
+                {newProdSku && (
+                  <div className="flex items-center justify-between bg-blue-950/80 px-3 py-1.5 rounded-xl border border-blue-700/60 text-[11px]">
+                    <span className="text-blue-200">
+                      SKU da CJ ativo: <strong className="font-mono text-amber-300">{newProdSku}</strong>
+                    </span>
+                    <span className="text-emerald-400 font-bold">✓ Armazém US CJ</span>
+                  </div>
+                )}
+
+                {/* 1-Click Category Selection */}
+                <div className="pt-2 border-t border-blue-700/60 space-y-1.5">
+                  <span className="text-[11px] font-bold text-amber-200 block">
+                    ⚡ Escolha a categoria do produto para carregar foto e custos calculados:
+                  </span>
+                  <div className="grid grid-cols-3 sm:grid-cols-3 gap-1.5">
+                    {CJ_PRESET_CATEGORIES.map((preset) => (
+                      <button
+                        key={preset.key}
+                        type="button"
+                        onClick={() => applyProductPreset(preset.key, newProdSku)}
+                        className={`px-2.5 py-2 rounded-xl text-[11px] font-bold text-left transition-all cursor-pointer flex items-center gap-2 border ${
+                          newProdCategory === preset.category
+                            ? 'bg-amber-400 text-stone-950 font-black border-amber-300 shadow-sm scale-102'
+                            : 'bg-white/10 hover:bg-white/20 text-white border-white/10'
+                        }`}
+                      >
+                        <span className="text-sm shrink-0">{preset.icon}</span>
+                        <span className="truncate">{preset.label.split('/')[0].trim()}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <p className="text-[10px] text-blue-200 leading-snug">
-                  💡 O sistema lê o produto, escolhe a foto, puxa o custo e calcula o preço de venda para garantir <strong>entre 50% e 65% de lucro líquido limpo ($)</strong>!
+                  💡 O sistema preenche o título, foto, custos e calcula o preço de venda para garantir <strong>60% de lucro líquido limpo ($)</strong>!
                 </p>
               </div>
 
