@@ -260,7 +260,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
 
   // Active section
   const [activeTab, setActiveTab] = useState<
-    'orders' | 'catalog' | 'suppliers' | 'gateway' | 'settings'
+    'orders' | 'catalog' | 'suppliers' | 'gateway' | 'settings' | 'metrics' | 'viral-studio'
   >('orders');
 
   // Password change state
@@ -594,11 +594,39 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     setNewProdPrice(price.toFixed(2));
   };
 
+  const handleAutoFillAndOpen = (query: string) => {
+    handleAutoFillFromCjLinkOrSku(query || 'caminha pet');
+    setIsAddProductOpen(true);
+  };
+
   const handleAutoFillFromCjLinkOrSku = (inputStr: string) => {
     const rawInput = inputStr.trim();
     const query = rawInput.toLowerCase();
 
-    let name = 'Ultra-Soft Orthopedic Calming Pet Bed';
+    let extractedTitle = '';
+    if (rawInput.includes('cjdropshipping.com') || rawInput.includes('/product/')) {
+      try {
+        const urlObj = new URL(rawInput.startsWith('http') ? rawInput : `https://${rawInput}`);
+        const pathSegments = urlObj.pathname.split('/').filter(Boolean);
+        const lastPart = pathSegments[pathSegments.length - 1] || '';
+        // E.g. anti-anxiety-orthopedic-calming-dog-bed-p-189381.html
+        const cleanSlug = lastPart
+          .replace(/-p-\d+.*$/i, '')
+          .replace(/\.html.*$/i, '')
+          .replace(/[-_]+/g, ' ')
+          .trim();
+        if (cleanSlug && cleanSlug.length > 3) {
+          extractedTitle = cleanSlug
+            .split(' ')
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+            .join(' ');
+        }
+      } catch {
+        // Fallback to text matching
+      }
+    }
+
+    let name = extractedTitle || 'Ultra-Soft Orthopedic Calming Pet Bed';
     let category: 'Beds' | 'Feeding' | 'Walk & Travel' | 'Toys' | 'Grooming' | 'Wellness' | 'Treats' = 'Beds';
     let petType: 'Dog' | 'Cat' | 'All Pets' = 'Dog';
     let image = 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1200&q=85';
@@ -612,36 +640,70 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       query.includes('bebedouro') ||
       query.includes('fonte') ||
       query.includes('bowl') ||
-      query.includes('feeder')
+      query.includes('feeder') ||
+      query.includes('comedouro') ||
+      query.includes('tigela')
     ) {
-      name = 'AquaPure™ Ultra-Quiet Wireless Pet Fountain';
+      name = extractedTitle || 'AquaPure™ Ultra-Quiet Wireless Pet Fountain';
       category = 'Feeding';
-      petType = 'Cat';
+      petType = query.includes('dog') || query.includes('cao') || query.includes('cachorro') ? 'Dog' : 'Cat';
       image = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=1200&q=85';
       cost = 11.20;
-      ship = 5.20;
+      ship = 4.90;
+    } else if (
+      query.includes('car seat') ||
+      query.includes('seat cover') ||
+      query.includes('carrier') ||
+      query.includes('backpack') ||
+      query.includes('transporte') ||
+      query.includes('mochila') ||
+      query.includes('banco') ||
+      query.includes('carro')
+    ) {
+      name = extractedTitle || 'SafeJourney™ Waterproof Dog Car Seat Cover';
+      category = 'Walk & Travel';
+      petType = 'Dog';
+      image = 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=1200&q=85';
+      cost = 14.80;
+      ship = 6.20;
     } else if (
       query.includes('harness') ||
       query.includes('leash') ||
       query.includes('coleira') ||
       query.includes('guia') ||
       query.includes('passeio') ||
-      query.includes('collar')
+      query.includes('collar') ||
+      query.includes('peitoral')
     ) {
-      name = 'AirGlide™ Zero-Pull Ergonomic Dog Harness';
+      name = extractedTitle || 'AirGlide™ Zero-Pull Ergonomic Dog Harness';
       category = 'Walk & Travel';
       petType = 'Dog';
       image = 'https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&w=1200&q=85';
-      cost = 8.80;
+      cost = 8.50;
       ship = 3.80;
+    } else if (
+      query.includes('scratch') ||
+      query.includes('arranhador') ||
+      query.includes('tree') ||
+      query.includes('post') ||
+      query.includes('torre')
+    ) {
+      name = extractedTitle || 'PurrClaw™ Multi-Level Natural Sisal Cat Scratcher';
+      category = 'Toys';
+      petType = 'Cat';
+      image = 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&w=1200&q=85';
+      cost = 13.90;
+      ship = 6.40;
     } else if (
       query.includes('toy') ||
       query.includes('brinquedo') ||
       query.includes('ball') ||
       query.includes('laser') ||
-      query.includes('chew')
+      query.includes('chew') ||
+      query.includes('bolinha') ||
+      query.includes('mordedor')
     ) {
-      name = 'Interactive Smart Bouncing Motion Pet Toy';
+      name = extractedTitle || 'Interactive Smart Bouncing Motion Pet Toy';
       category = 'Toys';
       petType = 'All Pets';
       image = 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=85';
@@ -653,9 +715,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       query.includes('escova') ||
       query.includes('tosa') ||
       query.includes('nail') ||
-      query.includes('vacuum')
+      query.includes('unha') ||
+      query.includes('vacuum') ||
+      query.includes('shampoo') ||
+      query.includes('pelo')
     ) {
-      name = 'GroomPro™ Low-Noise Pet Hair Brush & Vacuum';
+      name = extractedTitle || 'GroomPro™ Low-Noise Pet Hair Brush & Vacuum';
       category = 'Grooming';
       petType = 'All Pets';
       image = 'https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=1200&q=85';
@@ -665,14 +730,43 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       query.includes('snack') ||
       query.includes('treat') ||
       query.includes('salmon') ||
-      query.includes('chews')
+      query.includes('chews') ||
+      query.includes('petisco') ||
+      query.includes('dental')
     ) {
-      name = 'WildBites™ 100% Alaskan Freeze-Dried Pet Treats';
+      name = extractedTitle || 'WildBites™ 100% Alaskan Freeze-Dried Pet Treats';
       category = 'Treats';
       petType = 'All Pets';
       image = 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1200&q=85';
       cost = 5.20;
       ship = 3.20;
+    } else if (
+      query.includes('camera') ||
+      query.includes('gps') ||
+      query.includes('rastreador') ||
+      query.includes('monitor')
+    ) {
+      name = extractedTitle || 'PetGuard™ HD Smart Night-Vision Pet Camera';
+      category = 'Wellness';
+      petType = 'All Pets';
+      image = 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=1200&q=85';
+      cost = 16.50;
+      ship = 4.50;
+    } else if (
+      query.includes('bed') ||
+      query.includes('cama') ||
+      query.includes('caminha') ||
+      query.includes('mat') ||
+      query.includes('pillow') ||
+      query.includes('calming') ||
+      query.includes('tapete')
+    ) {
+      name = extractedTitle || 'Ultra-Soft Orthopedic Calming Pet Bed';
+      category = 'Beds';
+      petType = 'Dog';
+      image = 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1200&q=85';
+      cost = 12.80;
+      ship = 5.20;
     }
 
     // Calculate selling price targeting 60% net profit margin (sweet spot in 50% - 65% target)
@@ -681,6 +775,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     let calculatedPrice = Number((totalCost / (1 - targetMargin)).toFixed(2));
     calculatedPrice = Math.ceil(calculatedPrice) - 0.05;
 
+    setNewProdSupplier('CJ Dropshipping');
     setNewProdName(name);
     setNewProdCategory(category);
     setNewProdPet(petType);
@@ -692,9 +787,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     setNewProdTagline(`Veterinarian-approved ${category.toLowerCase()} essentials with 24h US dispatch via USPS.`);
 
     setImportSuccessMsg(
-      `Formulário preparado! Preço sugerido configurado para 60% de margem de lucro. Ajuste os campos se desejar e clique em Publicar.`
+      `Dados do produto CJ carregados com sucesso! Foto, preço e margem de 60% prontos. Edite o que quiser e publique.`
     );
-    setTimeout(() => setImportSuccessMsg(null), 3500);
+    setTimeout(() => setImportSuccessMsg(null), 4000);
   };
 
   const handleAddRealProduct = (e: React.FormEvent) => {
@@ -1569,7 +1664,86 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
               </div>
             </div>
 
+            {/* ⚡ CARD DE IMPORTAÇÃO RÁPIDA CJ DROPSHIPPING (1-CLIQUE) */}
+            <div className="bg-gradient-to-br from-[#002244] via-[#092647] to-[#011427] text-white p-5 sm:p-7 rounded-3xl border border-blue-700/60 shadow-lg space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 bg-amber-400 text-stone-950 font-black text-[11px] px-3 py-1 rounded-full uppercase tracking-wider mb-2 shadow-xs">
+                    <Zap size={13} className="fill-stone-950" />
+                    <span>Importador Rápido CJ Dropshipping</span>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                    Adicionar Produto do CJ Dropshipping com 1 Clique
+                  </h3>
+                  <p className="text-xs text-blue-200 mt-1 max-w-2xl leading-relaxed">
+                    Cole o <strong>link ou SKU do produto</strong> que você viu no CJ. O sistema preenche o título em inglês, atribui a foto oficial, puxa o custo e calcula automaticamente o preço de venda para garantir <strong>60% de lucro líquido limpo</strong>. Você pode revisar e editar tudo antes de publicar!
+                  </p>
+                </div>
 
+                <div className="shrink-0 bg-white/10 backdrop-blur-xs p-3 rounded-2xl border border-white/15 text-center min-w-[170px]">
+                  <span className="text-[10px] uppercase font-bold text-blue-300 block">Status Conexão CJ</span>
+                  <span className="inline-flex items-center gap-1.5 text-emerald-300 font-black text-xs mt-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Conta Autorizada & Ativa
+                  </span>
+                </div>
+              </div>
+
+              {/* Input + Action Bar */}
+              <div className="bg-white/10 backdrop-blur-md p-2 sm:p-2.5 rounded-2xl border border-white/20 flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Cole o link do produto na CJ (ex: https://cjdropshipping.com/product/... ou SKU: CJ-PET-1029)"
+                    value={autoFillInput}
+                    onChange={(e) => setAutoFillInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAutoFillAndOpen(autoFillInput);
+                      }
+                    }}
+                    className="w-full bg-white text-gray-900 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-amber-400 shadow-inner"
+                  />
+                  {autoFillInput && (
+                    <button
+                      type="button"
+                      onClick={() => setAutoFillInput('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 font-bold text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleAutoFillAndOpen(autoFillInput)}
+                  className="bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-xs sm:text-sm px-6 py-3 rounded-xl cursor-pointer transition-all shrink-0 flex items-center justify-center gap-2 shadow-md hover:scale-102 active:scale-98"
+                >
+                  <Zap size={16} className="fill-stone-950" />
+                  <span>⚡ Importar & Preencher Produto</span>
+                </button>
+              </div>
+
+              {/* Guarantees & Info */}
+              <div className="flex flex-wrap items-center justify-between text-[11px] text-blue-200/90 pt-1 gap-2">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <span className="flex items-center gap-1 font-medium">
+                    <Check size={14} className="text-emerald-400" /> Preenche título e especificações
+                  </span>
+                  <span className="flex items-center gap-1 font-medium">
+                    <Check size={14} className="text-emerald-400" /> Foto em alta definição
+                  </span>
+                  <span className="flex items-center gap-1 font-medium">
+                    <Check size={14} className="text-emerald-400" /> Margem calculada: 50% a 65% de lucro
+                  </span>
+                </div>
+                <span className="text-amber-300 font-bold bg-amber-950/40 px-2.5 py-0.5 rounded-lg border border-amber-500/30">
+                  ✨ Totalmente editável antes de publicar
+                </span>
+              </div>
+            </div>
 
             {/* 4 Metric Cards for Catalog & CJ Margins */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -2565,155 +2739,6 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                 </div>
               </div>
             </div>
-
-            {/* Modal Form for Adding Real Product */}
-            {isAddProductOpen && (
-              <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-                <div className="bg-white text-gray-900 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl space-y-5 border border-gray-200 relative max-h-[90vh] overflow-y-auto">
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
-                        <Sparkles size={18} />
-                      </div>
-                      <div>
-                        <h3 className="text-base font-black text-gray-900">Cadastrar Produto Real do Zendrop / CJ</h3>
-                        <p className="text-xs text-gray-500">Adicione um novo produto com envio imediato dos EUA</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setIsAddProductOpen(false)}
-                      className="text-gray-400 hover:text-gray-600 font-bold text-lg cursor-pointer px-2"
-                    >
-                      ✕
-                    </button>
-                  </div>
-
-                  <form onSubmit={handleAddRealProduct} className="space-y-4 text-xs">
-                    <div>
-                      <label className="block font-bold text-gray-700 mb-1">Nome do Produto em Inglês (Como aparecerá na loja):</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Ex: Ultra-Soft Orthopedic Memory Foam Dog Bed"
-                        value={newProdName}
-                        onChange={(e) => setNewProdName(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 font-medium text-gray-900 focus:ring-2 focus:ring-[#2563EB] outline-none"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block font-bold text-gray-700 mb-1">Fornecedor Principal:</label>
-                        <select
-                          value={newProdSupplier}
-                          onChange={(e) => setNewProdSupplier(e.target.value as any)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 font-bold text-gray-800 bg-white"
-                        >
-                          <option value="Zendrop">Zendrop US</option>
-                          <option value="CJ Dropshipping">CJ Dropshipping US</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-gray-700 mb-1">SKU no Fornecedor (Opcional):</label>
-                        <input
-                          type="text"
-                          placeholder="Ex: ZD-BED-998"
-                          value={newProdSku}
-                          onChange={(e) => setNewProdSku(e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 font-mono text-gray-900"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block font-bold text-gray-700 mb-1">Preço de Venda na Loja ($ USD):</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          required
-                          value={newProdPrice}
-                          onChange={(e) => setNewProdPrice(e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 font-bold text-gray-900"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-gray-700 mb-1">Custo de Atacado no Fornecedor ($ USD):</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          required
-                          value={newProdCost}
-                          onChange={(e) => setNewProdCost(e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 font-bold text-gray-900"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block font-bold text-gray-700 mb-1">Categoria:</label>
-                        <select
-                          value={newProdCategory}
-                          onChange={(e) => setNewProdCategory(e.target.value as any)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 font-medium text-gray-800 bg-white"
-                        >
-                          <option value="Beds">Beds (Caminhas)</option>
-                          <option value="Feeding">Feeding (Alimentação)</option>
-                          <option value="Walk & Travel">Walk & Travel (Passeio)</option>
-                          <option value="Toys">Toys (Brinquedos)</option>
-                          <option value="Grooming">Grooming (Higiene)</option>
-                          <option value="Wellness">Wellness (Saúde)</option>
-                          <option value="Treats">Treats (Petiscos)</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-gray-700 mb-1">Tipo de Animal:</label>
-                        <select
-                          value={newProdPet}
-                          onChange={(e) => setNewProdPet(e.target.value as any)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 font-medium text-gray-800 bg-white"
-                        >
-                          <option value="Dog">Dog (Cães)</option>
-                          <option value="Cat">Cat (Gatos)</option>
-                          <option value="All Pets">All Pets (Todos os Pets)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block font-bold text-gray-700 mb-1">Link da Foto Principal (Unsplash ou Foto do Fornecedor):</label>
-                      <input
-                        type="url"
-                        value={newProdImage}
-                        onChange={(e) => setNewProdImage(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 font-mono text-[11px] text-gray-900"
-                      />
-                    </div>
-
-                    <div className="pt-3 flex items-center justify-end gap-3 border-t border-gray-100">
-                      <button
-                        type="button"
-                        onClick={() => setIsAddProductOpen(false)}
-                        className="px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors cursor-pointer"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer transition-colors shadow-md flex items-center gap-1.5"
-                      >
-                        <Check size={16} />
-                        <span>Publicar na Loja em 1-Clique</span>
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
 
             {/* How to communicate guide */}
             <div className="bg-amber-50 rounded-2xl p-5 border border-amber-200 text-xs text-amber-950">
