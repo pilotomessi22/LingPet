@@ -51,21 +51,8 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(() => getSavedProducts()[0] || PRODUCTS[0] || null);
 
-  // Cart items state with initial welcome item
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 'cart-bed-default',
-      sku: 'LP-BED-C9-M-Sage',
-      name: 'The Cloud9™ Orthopedic Calming Pet Bed',
-      price: 44.95,
-      quantity: 1,
-      size: 'Medium (30")',
-      color: 'Sage Green',
-      isRepeatDelivery: false,
-      image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1200&q=85',
-      supplierCost: 15.5,
-    },
-  ]);
+  // Cart items state - start with fresh empty cart for real shoppers
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   const [appliedPromo, setAppliedPromo] = useState('LING20');
 

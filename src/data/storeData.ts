@@ -1315,9 +1315,9 @@ export function getSavedProducts(): Product[] {
   if (typeof window === 'undefined') return PRODUCTS;
   try {
     const saved = localStorage.getItem('ling_admin_products');
-    if (saved) {
+    if (saved !== null) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }

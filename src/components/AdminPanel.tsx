@@ -779,6 +779,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     setTimeout(() => setImportSuccessMsg(null), 4000);
   };
 
+  const handleClearAllProducts = () => {
+    if (window.confirm('Tem certeza que deseja apagar TODOS os produtos de teste? O catálogo ficará 100% limpo para você cadastrar seus novos produtos reais da CJ/fornecedores.')) {
+      setActiveProducts([]);
+      saveProductsToStorage([]);
+      setImportSuccessMsg('Catálogo zerado com sucesso! Agora você pode cadastrar seus próprios produtos e fornecedores.');
+      setTimeout(() => setImportSuccessMsg(null), 4000);
+    }
+  };
+
   const handleSaveEditProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct) return;
@@ -1529,7 +1538,7 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                     Perfil: {cjAccountName || 'Ling Petshop'}
                   </span>
                   <span className="bg-amber-400/90 text-stone-950 text-xs font-black px-2.5 py-1 rounded-full">
-                    25 Produtos Reais Sincronizados
+                    {activeProducts.length} {activeProducts.length === 1 ? 'Produto Cadastrado' : 'Produtos Cadastrados'}
                   </span>
                 </div>
 
@@ -1538,7 +1547,7 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                 </h2>
 
                 <p className="text-xs sm:text-sm text-blue-100 mt-2 max-w-3xl leading-relaxed">
-                  Aqui você visualiza os custos reais de atacado da CJ Dropshipping para cada produto, o frete internacional com rastreio USPS e a precificação de alta conversão. Nossa estratégia combina <strong>preço baixo acessível para o comprador americano</strong> com <strong>ofertas em quantidade (Leve 2 com 15% OFF, Leve 3 com 25% OFF)</strong>, multiplicando seu lucro líquido!
+                  Aqui você visualiza os custos reais de atacado da CJ Dropshipping para cada produto, o frete internacional com rastreio USPS e a precificação de alta conversão. Adicione seus produtos reais ou limpe o catálogo para começar do zero!
                 </p>
               </div>
             </div>
@@ -1549,13 +1558,13 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                 <div>
                   <div className="inline-flex items-center gap-1.5 bg-emerald-400 text-stone-950 font-black text-[10px] px-3 py-1 rounded-full uppercase tracking-wider mb-2">
                     <Sparkles size={13} />
-                    <span>MÉTODO MANUAL DIRETO DA CJ (EM 2 MINUTOS)</span>
+                    <span>CENTRAL DE PRODUTOS & FORNECEDORES</span>
                   </div>
                   <h3 className="text-xl sm:text-2xl font-black text-white">
-                    Quer escolher os produtos manualmente na CJ e trazer pro site?
+                    Cadastrar Seus Próprios Produtos & Fornecedores
                   </h3>
                   <p className="text-xs text-blue-100 mt-1 max-w-2xl leading-relaxed">
-                    É super simples! Abra o app ou site da CJ Dropshipping, encontre qualquer produto de pet que gostar, copie o nome, o link da foto e o preço. Depois clique no botão verde ao lado para publicar no seu site na hora.
+                    Você pode zerar os 25 produtos de teste com 1 clique e cadastrar seus novos produtos da CJ Dropshipping ou de qualquer fornecedor com margem de 50% a 65% de lucro líquido.
                   </p>
                 </div>
 
@@ -1566,15 +1575,37 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                     className="bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 cursor-pointer transition-all hover:scale-102 active:scale-98"
                   >
                     <Plus size={16} />
-                    <span>+ Adicionar Produto Manualmente</span>
+                    <span>+ Adicionar Novo Produto</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={handleClearAllProducts}
+                    className="bg-rose-500/20 hover:bg-rose-500/40 text-rose-200 border border-rose-500/40 font-bold text-xs px-4 py-3 rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+                    title="Apaga os 25 produtos de exemplo para começar o catálogo 100% limpo"
+                  >
+                    <Trash2 size={14} className="text-rose-400" />
+                    <span>Zerar Produtos de Teste</span>
+                  </button>
+
+                  {activeProducts.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={handleResetCatalog}
+                      className="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3.5 py-3 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 border border-white/15"
+                      title="Restaura os 25 produtos de exemplo caso queira usá-los como modelo"
+                    >
+                      <RefreshCw size={14} />
+                      <span>Restaurar 25 Exemplos</span>
+                    </button>
+                  )}
 
                   <button
                     type="button"
                     onClick={() => setShowManualGuide(!showManualGuide)}
                     className="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3.5 py-3 rounded-xl transition-all cursor-pointer flex items-center gap-1 border border-white/15"
                   >
-                    <span>{showManualGuide ? 'Ocultar Guia' : '📘 Ver Passo a Passo'}</span>
+                    <span>{showManualGuide ? 'Ocultar Guia' : '📘 Ver Como Cadastrar'}</span>
                   </button>
                 </div>
               </div>
@@ -1834,8 +1865,45 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
             </div>
 
             {/* Catalog Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCatalogProducts.map((p) => {
+            {filteredCatalogProducts.length === 0 ? (
+              <div className="bg-white rounded-3xl p-10 sm:p-14 text-center border-2 border-dashed border-gray-200 max-w-xl mx-auto shadow-xs space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
+                  <Package size={32} />
+                </div>
+                <h3 className="text-xl font-black text-gray-900">
+                  {activeProducts.length === 0
+                    ? 'Catálogo Limpo e Pronto para Novos Produtos!'
+                    : 'Nenhum produto encontrado neste filtro'}
+                </h3>
+                <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed">
+                  {activeProducts.length === 0
+                    ? 'Os 25 produtos de teste foram removidos. Agora você pode adicionar seus próprios produtos da CJ Dropshipping ou fornecedores clicando no botão abaixo.'
+                    : 'Tente limpar a busca ou selecionar outra categoria acima.'}
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddProductOpen(true)}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-5 py-3 rounded-xl shadow-md cursor-pointer transition-all flex items-center gap-2"
+                  >
+                    <Plus size={16} />
+                    <span>+ Adicionar Meu Primeiro Produto</span>
+                  </button>
+                  {activeProducts.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={handleResetCatalog}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs px-4 py-3 rounded-xl cursor-pointer transition-all flex items-center gap-1.5"
+                    >
+                      <RefreshCw size={14} />
+                      <span>Restaurar 25 Exemplos</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCatalogProducts.map((p) => {
                 const isCustom = customRetailPrices[p.id] !== undefined;
 
                 return (
@@ -2081,8 +2149,9 @@ ITEMS: ${ord.items.map((i) => `${i.quantity}x ${i.name} (SKU: ${i.supplierSku})`
                 );
               })}
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      )}
 
         {/* TAB 3: CENTRAL DE FORNECEDORES & AGENTES */}
         {activeTab === 'suppliers' && (
